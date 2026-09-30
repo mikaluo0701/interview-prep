@@ -4,243 +4,384 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Interview Practice Coach</title>
+<meta name="description" content="Practice tailored interview questions, get each answer scored against a rubric, and build a story bank.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%230457cb'/%3E%3Cpath d='M9 11h14M9 16h10M9 21h6' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
+  /* Visual language modeled on Meta's Muse: rounded geometric sans, near-black ink,
+     vivid blue pills, 24px cards, white-to-pale-blue gradients, 3D emoji accents. */
   :root {
-    --bg: #f6f5f1;
+    --bg: #f4f6f9;
+    --glow-1: #dde9fb;
+    --glow-2: #eef3fb;
     --surface: #ffffff;
-    --surface-2: #f0eee8;
-    --text: #1d1c19;
-    --muted: #6b675e;
-    --border: #dedad0;
-    --accent: #b4532a;
+    --surface-2: #f5f7fa;
+    --text: #0a1317;
+    --muted: #5d6874;
+    --border: #e3e8ee;
+    --border-strong: #cfd6df;
+    --accent: #0457cb;
+    --accent-hover: #0171e3;
+    --accent-soft: #e6f0fd;
     --accent-text: #ffffff;
-    --behav: #2f6b4f;
-    --behav-bg: #e6f0ea;
-    --tech: #3a4f8a;
-    --tech-bg: #e7eaf5;
-    --good: #2f6b4f;
-    --mid: #9a6a12;
-    --low: #a8391f;
-    --warn-bg: #fbf1dc;
+    --hero-top: #ffffff;
+    --hero-bottom: #cfe1fb;
+    --behav: #1d6b4a;
+    --behav-bg: #e3f4ea;
+    --tech: #0457cb;
+    --tech-bg: #e6f0fd;
+    --good: #188150;
+    --mid: #b7770b;
+    --low: #d23c2a;
+    --warn-bg: #fff4dc;
     --warn-text: #7a5410;
-    --err-bg: #fbe5e1;
-    --err-text: #8a2a1a;
-    --radius: 10px;
+    --err-bg: #fde7e4;
+    --err-text: #9b2716;
+    --shadow-sm: 0 1px 2px rgba(10, 19, 23, 0.04);
+    --shadow: 0 1px 2px rgba(10, 19, 23, 0.04), 0 10px 30px -14px rgba(4, 87, 203, 0.18);
+    --shadow-lg: 0 2px 6px rgba(10, 19, 23, 0.04), 0 28px 60px -28px rgba(4, 87, 203, 0.35);
+    --radius: 16px;
+    --radius-lg: 24px;
+    --display: Montserrat, "Optimistic VF", Helvetica, Arial, sans-serif;
+    --sans: Helvetica, Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #181715;
-      --surface: #22211e;
-      --surface-2: #2b2a26;
-      --text: #ecebe6;
-      --muted: #a29e93;
-      --border: #3a3833;
-      --accent: #e0784a;
-      --accent-text: #1a1310;
-      --behav: #8fcfae;
-      --behav-bg: #1f3329;
-      --tech: #a9b8ec;
-      --tech-bg: #232a42;
-      --good: #8fcfae;
-      --mid: #e6bc6a;
-      --low: #f2a494;
-      --warn-bg: #3a2f17;
-      --warn-text: #efcf8a;
-      --err-bg: #3d211b;
-      --err-text: #f2a494;
+      --bg: #0b1016;
+      --glow-1: #0f2340;
+      --glow-2: #0c1624;
+      --surface: #141b24;
+      --surface-2: #1b2430;
+      --text: #eef2f6;
+      --muted: #9aa6b3;
+      --border: #26303c;
+      --border-strong: #35414f;
+      --accent: #4ba9fe;
+      --accent-hover: #72bcff;
+      --accent-soft: #10284a;
+      --accent-text: #06111f;
+      --hero-top: #141b24;
+      --hero-bottom: #12305a;
+      --behav: #7fd3a8;
+      --behav-bg: #13301f;
+      --tech: #8cc4ff;
+      --tech-bg: #10284a;
+      --good: #6fd09c;
+      --mid: #f0c060;
+      --low: #ff8f7d;
+      --warn-bg: #33290f;
+      --warn-text: #f1d28c;
+      --err-bg: #3a1a15;
+      --err-text: #ffab9b;
+      --shadow-sm: none;
+      --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 14px 30px -18px rgba(0, 0, 0, 0.7);
+      --shadow-lg: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 30px 60px -30px rgba(0, 0, 0, 0.9);
     }
   }
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   body {
     margin: 0;
-    background: var(--bg);
     color: var(--text);
-    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    font: 15px/1.55 var(--sans);
+    background:
+      radial-gradient(1000px 520px at 50% -12%, var(--glow-1), transparent 70%),
+      var(--bg);
+    background-repeat: no-repeat;
+    -webkit-font-smoothing: antialiased;
   }
-  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
-  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
-  h2 { font-size: 20px; margin: 0; }
-  .sub { color: var(--muted); margin: 0 0 24px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
-  label { display: block; font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  main { max-width: 1000px; margin: 0 auto; padding: 0 16px 80px; }
+  ::selection { background: var(--accent-soft); }
+  h1, h2 { font-family: var(--display); font-weight: 500; letter-spacing: -0.015em; margin: 0; }
+  h2 { font-size: 28px; line-height: 1.2; display: flex; align-items: center; gap: 12px; }
+  .emo { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-weight: 400; }
+  h2 .emo { font-size: 28px; }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 0 -16px; padding: 12px 16px;
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--surface); display: grid; place-items: center; box-shadow: 0 1px 2px rgba(10, 19, 23, 0.08), 0 4px 12px -4px rgba(4, 87, 203, 0.35); }
+  .brand-mark svg { width: 18px; height: 18px; }
+  .brand-mark path { stroke: var(--accent); }
+  .brand { white-space: nowrap; }
+  @media (max-width: 420px) {
+    .brand { font-size: 14px; gap: 8px; }
+    .brand-mark { width: 30px; height: 30px; }
+    .topbar button.small { padding: 7px 13px; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    margin: 14px 0 28px; padding: 64px 24px 44px; text-align: center;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--hero-top) 0%, var(--hero-top) 35%, var(--hero-bottom) 100%);
+    box-shadow: var(--shadow);
+  }
+  @media (max-width: 720px) { .hero { padding: 44px 18px 32px; } }
+  .eyebrow { display: block; font-family: var(--display); font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+  .hero h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.15; max-width: 760px; margin: 0 auto; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero h1 .emo { font-size: 0.9em; display: inline-block; transform: translateY(-0.04em); }
+  .sub { color: var(--muted); font-size: 17px; line-height: 1.55; margin: 20px auto 0; max-width: 600px; }
+  .hero-cta { margin-top: 28px; display: flex; justify-content: center; }
+  .steps { list-style: none; padding: 0; margin: 36px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; font-size: 14px; }
+  .steps li { display: flex; align-items: center; gap: 8px; padding: 9px 16px 9px 12px; border-radius: 99px; background: color-mix(in srgb, var(--surface) 80%, transparent); box-shadow: var(--shadow-sm); color: var(--text); }
+  .steps .emo { font-size: 18px; }
+
+  /* ---------- Setup card ---------- */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+  .setup { padding: 28px; scroll-margin-top: 72px; }
+  .setup-title { margin: 0 0 20px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } .setup { padding: 18px; } }
+  label { display: block; font-family: var(--display); font-weight: 600; font-size: 13.5px; margin-bottom: 8px; }
   .label-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .count { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .count { font-family: var(--sans); font-weight: 400; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
   textarea, input[type="password"], input[type="text"] {
     width: 100%;
-    background: var(--surface);
+    background: var(--surface-2);
     color: var(--text);
-    border: 1px solid var(--border);
+    border: 1px solid transparent;
     border-radius: var(--radius);
-    padding: 12px;
+    padding: 14px 16px;
     font: inherit;
-    font-size: 14px;
+    font-size: 14.5px;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
   }
-  textarea { min-height: 220px; resize: vertical; }
-  textarea:focus, input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
-  .key-row { margin-top: 20px; display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: end; }
-  @media (max-width: 720px) { .key-row { grid-template-columns: 1fr; } }
+  textarea { min-height: 230px; resize: vertical; line-height: 1.55; }
+  textarea::placeholder, input::placeholder { color: var(--muted); opacity: 0.85; }
+  textarea:hover, input[type="password"]:hover, input[type="text"]:hover { border-color: var(--border); }
+  textarea:focus, input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); background: var(--surface); }
+  .key-row { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: end; }
+  @media (max-width: 720px) { .key-row { grid-template-columns: 1fr; } .key-row .actions button { width: 100%; } }
   .key-wrap { position: relative; }
-  .key-wrap input { padding-right: 64px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-  .toggle-key {
-    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-    background: none; border: 0; color: var(--muted); font: inherit; font-size: 12px; cursor: pointer; padding: 4px 6px;
-  }
-  .hint { color: var(--muted); font-size: 12px; margin-top: 6px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-  .hint input { margin: 0 4px 0 0; vertical-align: -1px; }
-  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .key-wrap input { padding-right: 64px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  .toggle-key { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: 0; color: var(--accent); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; padding: 6px 8px; border-radius: 99px; }
+  .toggle-key:hover { background: var(--accent-soft); }
+  .hint { color: var(--muted); font-size: 12.5px; margin-top: 8px; display: flex; gap: 6px 16px; flex-wrap: wrap; align-items: center; }
+  .check { display: inline-flex; align-items: center; gap: 6px; font-family: var(--sans); font-weight: 400; font-size: 12.5px; margin: 0; cursor: pointer; }
+  .check input { accent-color: var(--accent); margin: 0; }
+  .lock { display: inline-flex; align-items: center; gap: 5px; }
+
+  /* ---------- Buttons ---------- */
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  button { -webkit-tap-highlight-color: transparent; }
   button.primary {
-    background: var(--accent); color: var(--accent-text); border: 0; border-radius: var(--radius);
-    padding: 12px 22px; font: inherit; font-weight: 600; cursor: pointer; white-space: nowrap;
+    background: var(--accent); color: var(--accent-text); border: 0; border-radius: 100px;
+    padding: 14px 30px; font-family: var(--display); font-size: 14.5px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
   }
-  button.primary:disabled { opacity: 0.5; cursor: default; }
-  button.ghost {
-    background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 11px 16px; font: inherit; cursor: pointer; white-space: nowrap;
+  button.primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 8px 20px -8px var(--accent); }
+  button.primary:active:not(:disabled) { transform: scale(0.98); }
+  button.primary:disabled { opacity: 0.4; cursor: default; }
+  button.ghost, .file-btn {
+    background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 100px;
+    padding: 13px 22px; font-family: var(--display); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+    transition: border-color 0.15s, background 0.15s;
   }
-  button.link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; }
-  .notice { margin-top: 28px; padding: 12px 14px; border-radius: var(--radius); font-size: 14px; }
+  button.ghost:hover, .file-btn:hover { border-color: var(--border-strong); background: var(--surface-2); }
+  .file-btn { display: inline-flex; align-items: center; margin: 0; }
+  button.small, .file-btn.small { padding: 8px 18px; font-size: 13px; }
+  button.link { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; text-decoration: none; }
+  button.link:hover { text-decoration: underline; text-underline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Notices ---------- */
+  .notice { margin-top: 24px; padding: 16px 18px; border-radius: var(--radius); font-size: 14px; line-height: 1.5; }
   .notice.warn { background: var(--warn-bg); color: var(--warn-text); }
   .notice.err { background: var(--err-bg); color: var(--err-text); }
 
-  /* Practice card */
-  .practice { margin-top: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  /* ---------- Practice card ---------- */
+  .practice { margin-top: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-lg); scroll-margin-top: 72px; }
+  @media (max-width: 720px) { .practice { padding: 20px; } }
   .p-meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
-  .progress { height: 4px; background: var(--surface-2); border-radius: 99px; margin: 10px 0 18px; overflow: hidden; }
-  .progress > div { height: 100%; background: var(--accent); transition: width 0.3s; }
-  .p-question { font-size: 20px; font-weight: 600; line-height: 1.4; margin: 0 0 12px; letter-spacing: -0.005em; }
-  .practice details { font-size: 14px; margin-bottom: 14px; }
-  .practice summary { cursor: pointer; color: var(--muted); font-size: 13px; }
-  .practice details p { margin: 8px 0 0; padding: 8px 10px; background: var(--surface-2); border-radius: 8px; }
-  .practice textarea { min-height: 180px; }
-  .p-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
-  .done-title { font-size: 20px; font-weight: 600; margin: 0 0 6px; }
-  .done-text { color: var(--muted); margin: 0 0 16px; }
+  .p-meta > span:first-child { display: inline-flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 600; color: var(--text); }
+  .segs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 5px; margin: 14px 0 28px; }
+  .seg { height: 6px; border-radius: 99px; background: var(--surface-2); transition: background 0.3s; }
+  .seg.done { background: var(--accent); }
+  .seg.skipped { background: repeating-linear-gradient(135deg, var(--border-strong) 0 3px, transparent 3px 6px); }
+  .seg.current { background: var(--text); }
+  .p-question { font-family: var(--display); font-weight: 500; font-size: clamp(22px, 3vw, 28px); line-height: 1.3; margin: 0 0 16px; letter-spacing: -0.015em; }
+  .practice details { font-size: 14px; margin-bottom: 20px; }
+  .practice summary { cursor: pointer; color: var(--accent); font-size: 13px; font-weight: 700; list-style: none; display: inline-flex; align-items: center; gap: 6px; }
+  .practice summary::-webkit-details-marker { display: none; }
+  .practice summary::before { content: "+"; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-soft); font-size: 13px; line-height: 1; }
+  .practice details[open] summary::before { content: "–"; }
+  .practice details p { margin: 10px 0 0; padding: 14px 16px; background: var(--accent-soft); border-radius: var(--radius); color: var(--text); }
+  .practice textarea { min-height: 190px; font-size: 15px; }
+  .p-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+  kbd { font: 700 11px/1 var(--sans); padding: 4px 7px; border-radius: 7px; background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); }
+  .done-title { font-family: var(--display); font-weight: 500; font-size: 28px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.015em; }
+  .done-text { color: var(--muted); margin: 0 0 22px; font-size: 15px; }
 
-  /* Pills & chips */
-  .pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; }
+  /* ---------- Pills, chips, score rings ---------- */
+  .pill { display: inline-block; font-family: var(--display); font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 99px; }
   .pill.behavioral { background: var(--behav-bg); color: var(--behav); }
   .pill.technical { background: var(--tech-bg); color: var(--tech); }
-  .chip { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 99px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
-  .chip.score { border-color: currentColor; }
+  .chip { display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 99px; color: var(--muted); white-space: nowrap; background: var(--surface-2); }
+  .ring { --p: 0; width: 50px; height: 50px; border-radius: 50%; flex: none; display: grid; place-items: center; position: relative;
+    background: conic-gradient(currentColor calc(var(--p) * 1%), var(--surface-2) 0); }
+  .ring::before { content: ""; position: absolute; inset: 5px; border-radius: 50%; background: var(--surface); }
+  .ring b { position: relative; font-family: var(--display); font-size: 13.5px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+  .s-good { color: var(--good); } .s-mid { color: var(--mid); } .s-low { color: var(--low); }
 
-  /* Review list */
-  .review { margin-top: 36px; }
-  .review-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-  .review-sub { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
-  ol.rlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-  .r { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
-  .r.upcoming { background: transparent; border-style: dashed; padding: 12px 18px; }
-  .r-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  /* ---------- Section headers ---------- */
+  .review, .bank { scroll-margin-top: 72px; }
+  .review { margin-top: 64px; }
+  .review-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .review-sub { color: var(--muted); font-size: 14px; margin: 8px 0 0; }
+
+  /* ---------- Review list ---------- */
+  ol.rlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+  .r { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); }
+  @media (max-width: 720px) { .r { padding: 18px; } }
+  .r.upcoming { background: transparent; border-style: dashed; padding: 14px 20px; box-shadow: none; }
+  .r-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 28px; }
   .r-head .spacer { flex: 1; }
-  .num { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .r-q { font-weight: 600; font-size: 15.5px; margin-top: 8px; }
-  .r-testing { color: var(--muted); font-size: 13px; margin-top: 4px; }
-  .r-body { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px; display: grid; gap: 16px; }
-  .r-note { font-size: 13px; background: var(--warn-bg); color: var(--warn-text); padding: 8px 10px; border-radius: 8px; }
-  .r-error { font-size: 14px; background: var(--err-bg); color: var(--err-text); padding: 8px 10px; border-radius: 8px; display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .r-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 8px; }
-  .crit { display: grid; gap: 10px; }
-  .crit-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; }
-  .crit-name { font-weight: 600; font-size: 14px; }
+  .num { display: grid; place-items: center; min-width: 28px; height: 28px; border-radius: 50%; background: var(--text); color: var(--surface); font-family: var(--display); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .r.upcoming .num { background: var(--surface-2); color: var(--muted); }
+  .r-q { font-family: var(--display); font-weight: 500; font-size: 18px; line-height: 1.4; margin-top: 14px; letter-spacing: -0.01em; }
+  .r-testing { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .r-body { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px; display: grid; gap: 22px; }
+  .r-note { font-size: 13.5px; background: var(--warn-bg); color: var(--warn-text); padding: 12px 14px; border-radius: 14px; }
+  .r-error { font-size: 14px; background: var(--err-bg); color: var(--err-text); padding: 12px 14px; border-radius: 14px; display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .r-label { font-family: var(--display); font-size: 12.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin: 0 0 12px; }
+  .crit { display: grid; gap: 16px; }
+  .crit-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; }
+  .crit-name { font-weight: 700; font-size: 14.5px; }
   .crit-just { grid-column: 1 / -1; font-size: 14px; color: var(--muted); }
   .dots { display: inline-flex; gap: 3px; align-items: center; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .dots i { width: 10px; height: 10px; border-radius: 3px; background: var(--surface-2); border: 1px solid var(--border); }
-  .dots i.on { background: currentColor; border-color: currentColor; }
-  .dots b { margin-left: 6px; }
-  .s-good { color: var(--good); } .s-mid { color: var(--mid); } .s-low { color: var(--low); }
-  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .dots i { width: 16px; height: 7px; border-radius: 99px; background: var(--surface-2); }
+  .dots i.on { background: currentColor; }
+  .dots b { margin-left: 8px; min-width: 26px; text-align: right; font-family: var(--display); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media (max-width: 720px) { .two { grid-template-columns: 1fr; } }
-  .two ul { margin: 0; padding-left: 18px; font-size: 14px; display: grid; gap: 4px; }
-  .rewrite { display: grid; gap: 8px; font-size: 14px; }
-  .rewrite blockquote { margin: 0; padding: 8px 12px; border-radius: 8px; border-left: 3px solid; }
-  .rewrite .before { border-color: var(--low); background: var(--surface-2); color: var(--muted); }
-  .rewrite .after { border-color: var(--good); background: var(--behav-bg); color: var(--text); }
-  .rewrite small { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; color: var(--muted); }
-  .r details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
-  .r details p { white-space: pre-wrap; font-size: 14px; margin: 8px 0 0; padding: 10px 12px; background: var(--surface-2); border-radius: 8px; }
-  .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+  .two > div { background: var(--surface-2); border-radius: 18px; padding: 16px 18px; }
+  .two .r-label { margin-bottom: 10px; }
+  .two > div:first-child .r-label { color: var(--good); }
+  .two > div:last-child .r-label { color: var(--low); }
+  .two ul { margin: 0; padding-left: 18px; font-size: 14px; display: grid; gap: 7px; }
+  .rewrite { display: grid; gap: 10px; font-size: 14.5px; }
+  .rewrite blockquote { margin: 0; padding: 14px 16px; border-radius: 16px; }
+  .rewrite .before { background: var(--surface-2); color: var(--muted); }
+  .rewrite .after { background: var(--accent-soft); color: var(--text); }
+  .rewrite small { display: block; font-family: var(--display); font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; color: var(--muted); }
+  .rewrite .after small { color: var(--accent); }
+  .r details summary { cursor: pointer; color: var(--accent); font-size: 13px; font-weight: 700; }
+  .r details p { white-space: pre-wrap; font-size: 14px; margin: 10px 0 0; padding: 14px 16px; background: var(--surface-2); border-radius: 16px; }
+  .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: -2px; margin-right: 7px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  /* Tags */
+
+  /* ---------- Tags ---------- */
   .tag-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .r-tags { margin-top: 8px; }
-  .tag { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
-  .tag-opt { font: inherit; font-size: 12.5px; padding: 4px 10px; border-radius: 99px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; }
+  .r-tags { margin-top: 12px; }
+  .tag { font-size: 12.5px; font-weight: 600; padding: 4px 11px; border-radius: 99px; background: var(--surface-2); color: var(--text); }
+  .tag-opt { font: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; transition: all 0.12s; }
+  .tag-opt:hover { border-color: var(--border-strong); }
   .tag-opt[aria-pressed="true"] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
-  input.tag-add { width: 150px; padding: 4px 10px; font-size: 12.5px; border-radius: 99px; }
+  input.tag-add { width: 160px; padding: 7px 14px; font-size: 13px; border-radius: 99px; }
 
-  /* Save to story bank */
-  .save-bar { border-top: 1px solid var(--border); padding-top: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .save-bar.editing { display: grid; gap: 12px; justify-content: stretch; }
+  /* ---------- Save to story bank ---------- */
+  .save-bar { border-top: 1px solid var(--border); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .save-bar.editing { display: grid; gap: 14px; justify-content: stretch; }
   .save-bar .r-label { margin: 0; }
-  .save-hint { font-size: 13px; color: var(--muted); }
-  .saved { font-size: 13px; font-weight: 600; color: var(--good); }
+  .save-hint { font-size: 14px; color: var(--muted); max-width: 520px; }
+  .saved { font-size: 14px; font-weight: 700; color: var(--good); }
 
-  /* Header */
-  .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-  .top button { margin-top: 2px; }
+  /* ---------- Story bank ---------- */
+  .bank { margin-top: 80px; }
+  .gaps { font-size: 15px; padding: 22px 24px; border-radius: var(--radius-lg); background: linear-gradient(180deg, var(--surface) 0%, var(--accent-soft) 100%); border: 1px solid var(--border); margin-bottom: 8px; display: grid; gap: 6px; }
+  .gaps b { font-family: var(--display); font-weight: 600; }
+  .gaps .r-testing { margin-top: 6px; font-size: 13px; }
+  .cov-title { margin: 30px 0 12px; }
+  .cov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+  .cov { text-align: left; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 14px 16px; cursor: pointer; display: grid; gap: 3px; box-shadow: var(--shadow-sm); transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s; }
+  .cov:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .cov.none { background: transparent; border-style: dashed; box-shadow: none; }
+  .cov.active { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .cov-name { font-family: var(--display); font-weight: 600; font-size: 14.5px; display: flex; align-items: center; gap: 8px; }
+  .cov-name::before { content: ""; width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--low); }
+  .cov.strong .cov-name::before { background: var(--good); }
+  .cov.weak .cov-name::before { background: var(--mid); }
+  .cov-status { font-size: 13px; padding-left: 17px; }
+  .cov-empty { color: var(--muted); font-size: 14px; margin: 0; }
+  .bank-filter { margin: 34px 0 14px; font-size: 14px; color: var(--muted); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .story-text { white-space: pre-wrap; font-size: 15px; margin: 14px 0 0; line-height: 1.6; }
+  .story-tip { font-size: 14px; color: var(--text); margin-top: 14px; padding: 14px 16px; background: var(--accent-soft); border-radius: 16px; }
+  .story-tip b { color: var(--accent); font-family: var(--display); font-weight: 600; }
+  .story-actions { display: flex; gap: 18px; margin-top: 16px; }
+  .story-edit { display: grid; gap: 12px; margin-top: 14px; }
+  .story-edit textarea { min-height: 150px; }
 
-  /* Story bank */
-  .bank { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--border); }
-  .gaps { font-size: 14px; padding: 12px 14px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--border); margin-bottom: 18px; }
-  .gaps b { font-weight: 600; }
-  .gaps .r-testing { margin-top: 4px; }
-  .cov-title { margin: 18px 0 8px; }
-  .cov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
-  .cov { text-align: left; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; display: grid; gap: 1px; }
-  .cov.strong { border-left-color: var(--good); }
-  .cov.weak { border-left-color: var(--mid); }
-  .cov.none { border-left-color: var(--low); border-style: dashed; border-left-style: solid; background: transparent; }
-  .cov.active { outline: 2px solid var(--accent); outline-offset: -1px; }
-  .cov-name { font-weight: 600; font-size: 14px; }
-  .cov-status { font-size: 12.5px; }
-  .cov-empty { color: var(--muted); font-size: 13px; }
-  .bank-filter { margin: 22px 0 10px; font-size: 13px; color: var(--muted); display: flex; gap: 10px; align-items: center; }
-  .story-text { white-space: pre-wrap; font-size: 14px; margin: 12px 0 0; }
-  .story-tip { font-size: 13px; color: var(--muted); margin-top: 10px; padding-left: 10px; border-left: 3px solid var(--good); }
-  .story-actions { display: flex; gap: 14px; margin-top: 12px; }
-  .story-edit { display: grid; gap: 10px; margin-top: 12px; }
-  .story-edit textarea { min-height: 140px; }
-  .file-btn { display: inline-flex; align-items: center; margin: 0; font-weight: 400; font-size: inherit; border: 1px solid var(--border); border-radius: var(--radius); padding: 11px 16px; cursor: pointer; }
+  /* ---------- Footer ---------- */
+  .foot { margin-top: 80px; padding-top: 22px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; animation-duration: 0.01s !important; } }
 </style>
 </head>
 <body>
 <main>
-  <div class="top">
-    <h1>Interview Practice Coach</h1>
-    <button class="ghost" id="to-bank" type="button">Story bank</button>
-  </div>
-  <p class="sub">Paste a job description and your résumé to get ten tailored interview questions. Answer them one at a time, skip any you like, and get a scored review of each answer.</p>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 4.5h10M3 8h7M3 11.5h4" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </span>
+      Interview Practice Coach
+    </div>
+    <button class="ghost small" id="to-bank" type="button">Story bank</button>
+  </header>
 
-  <div class="grid">
-    <div>
-      <div class="label-row"><label for="jd">Job description</label><span class="count" id="jd-count"></span></div>
-      <textarea id="jd" placeholder="Paste the full job posting…"></textarea>
-    </div>
-    <div>
-      <div class="label-row"><label for="resume">Résumé</label><span class="count" id="resume-count"></span></div>
-      <textarea id="resume" placeholder="Paste your résumé as plain text…"></textarea>
-    </div>
-  </div>
+  <section class="hero">
+    <span class="eyebrow">Interview practice, tailored to the role</span>
+    <h1>Rehearse <span class="emo">🎤</span> the interview <em>before</em> it happens <span class="emo">💼</span></h1>
+    <p class="sub">Paste a job description and your résumé. Answer ten questions written for this role, one at a time, and get each answer scored against a rubric, with a stronger version of your weakest line.</p>
+    <div class="hero-cta"><button class="primary" id="start" type="button">Start practicing</button></div>
+    <ol class="steps">
+      <li><span class="emo">📋</span>Paste the job and your résumé</li>
+      <li><span class="emo">🗣️</span>Answer or skip each question</li>
+      <li><span class="emo">⭐</span>Keep your best stories</li>
+    </ol>
+  </section>
 
-  <div class="key-row">
-    <div>
-      <label for="key">Anthropic API key <span class="count">(optional)</span></label>
-      <div class="key-wrap">
-        <input type="password" id="key" placeholder="sk-ant-…  (leave empty to try it with sample data)" autocomplete="off" spellcheck="false">
-        <button class="toggle-key" id="toggle-key" type="button">Show</button>
+  <section class="card setup" id="setup">
+    <p class="r-label setup-title">Step 1 · Your materials</p>
+    <div class="grid">
+      <div>
+        <div class="label-row"><label for="jd">Job description</label><span class="count" id="jd-count"></span></div>
+        <textarea id="jd" placeholder="Paste the full job posting…"></textarea>
       </div>
-      <div class="hint">
-        <span>Sent only to api.anthropic.com from your browser.</span>
-        <label style="display:inline;font-weight:400;margin:0"><input type="checkbox" id="remember">Remember on this device</label>
-        <button class="link" id="load-sample" type="button">Fill in sample inputs</button>
+      <div>
+        <div class="label-row"><label for="resume">Résumé</label><span class="count" id="resume-count"></span></div>
+        <textarea id="resume" placeholder="Paste your résumé as plain text…"></textarea>
       </div>
     </div>
-    <div class="actions">
-      <button class="primary" id="generate" type="button">Generate questions</button>
+
+    <div class="key-row">
+      <div>
+        <label for="key">Anthropic API key <span class="count">optional</span></label>
+        <div class="key-wrap">
+          <input type="password" id="key" placeholder="sk-ant-…   Leave empty to try it with sample data" autocomplete="off" spellcheck="false">
+          <button class="toggle-key" id="toggle-key" type="button">Show</button>
+        </div>
+        <div class="hint">
+          <span class="lock">Sent only to api.anthropic.com, straight from your browser.</span>
+          <label class="check"><input type="checkbox" id="remember">Remember on this device</label>
+          <button class="link" id="load-sample" type="button">Fill in sample inputs</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" id="generate" type="button">Generate questions</button>
+      </div>
     </div>
-  </div>
+  </section>
 
   <div id="notice" class="notice" hidden></div>
 
@@ -249,10 +390,10 @@
   <section class="review" id="review" hidden>
     <div class="review-head">
       <div>
-        <h2>Review</h2>
+        <h2><span class="emo">📝</span>Review</h2>
         <p class="review-sub" id="review-sub"></p>
       </div>
-      <button class="ghost" id="copy" type="button">Copy as text</button>
+      <button class="ghost small" id="copy" type="button">Copy as text</button>
     </div>
     <ol class="rlist" id="rlist"></ol>
   </section>
@@ -260,12 +401,12 @@
   <section class="bank" id="bank">
     <div class="review-head">
       <div>
-        <h2>Story bank</h2>
+        <h2><span class="emo">📚</span>Story bank</h2>
         <p class="review-sub" id="bank-sub"></p>
       </div>
       <div class="actions">
-        <button class="ghost" id="bank-export" type="button">Export</button>
-        <label class="file-btn">Import<input type="file" id="bank-import" accept="application/json,.json" hidden></label>
+        <button class="ghost small" id="bank-export" type="button">Export</button>
+        <label class="file-btn small">Import<input type="file" id="bank-import" accept="application/json,.json" hidden></label>
       </div>
     </div>
     <div class="gaps" id="bank-gaps"></div>
@@ -276,6 +417,11 @@
     <div class="bank-filter" id="bank-filter"></div>
     <ol class="rlist" id="bank-list"></ol>
   </section>
+
+  <footer class="foot">
+    <span>Your API key and saved stories stay in this browser.</span>
+    <span>Questions and reviews by Claude Opus 5.5 · Design inspired by Meta's Muse</span>
+  </footer>
 </main>
 
 <script>
@@ -905,6 +1051,8 @@ const avgScore = (review) => {
   const xs = review.scores.map((c) => clampScore(c.score));
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
 };
+const scoreRing = (avg) =>
+  `<span class="ring ${scoreClass(avg)}" style="--p:${(avg / 5) * 100}" title="Average ${avg.toFixed(1)} out of 5" aria-label="Average ${avg.toFixed(1)} out of 5"><b>${avg.toFixed(1)}</b></span>`;
 const wordCount = (s) => (s.trim() ? s.trim().split(/\s+/).length : 0);
 const catLabel = (c) => (c === "technical" ? "Technical" : "Behavioral");
 
@@ -938,10 +1086,10 @@ function renderPractice() {
   const q = s.qs[i];
   practiceEl.innerHTML = `
     <div class="p-meta">
-      <span>Question ${i + 1} of ${n} · <span class="pill ${q.category}">${catLabel(q.category)}</span></span>
+      <span>Question ${i + 1} of ${n} <span class="pill ${q.category}">${catLabel(q.category)}</span></span>
       <span>${handled} of ${n} done</span>
     </div>
-    <div class="progress"><div style="width:${(handled / n) * 100}%"></div></div>
+    <div class="segs" aria-hidden="true">${s.state.map((x, k) => `<span class="seg ${k === i ? "current" : x.status === "upcoming" ? "" : x.status === "skipped" ? "skipped" : "done"}"></span>`).join("")}</div>
     <p class="p-question">${escapeHtml(q.question)}</p>
     <details>
       <summary>Hint: what they're testing</summary>
@@ -954,7 +1102,7 @@ function renderPractice() {
     <textarea id="answer" placeholder="Type your answer as you'd say it in the interview…"></textarea>
     <div class="p-foot">
       <div class="hint" style="margin:0">
-        <span>⌘/Ctrl + Enter to submit</span>
+        <span><kbd>⌘</kbd> <kbd>Enter</kbd> to submit</span>
         ${s.sample ? `<button class="link" id="use-sample-answer" type="button">Insert sample answer</button>` : ""}
       </div>
       <div class="actions">
@@ -1011,7 +1159,7 @@ function renderReviewItem(i) {
 
   if (st.status === "upcoming") {
     li.className = "r upcoming";
-    li.innerHTML = `<div class="r-head"><span class="num">${i + 1}.</span><span class="pill ${q.category}">${catLabel(q.category)}</span><span class="spacer"></span><span class="chip">Upcoming</span></div>`;
+    li.innerHTML = `<div class="r-head"><span class="num">${i + 1}</span><span class="pill ${q.category}">${catLabel(q.category)}</span><span class="spacer"></span><span class="chip">Upcoming</span></div>`;
     return;
   }
 
@@ -1024,17 +1172,17 @@ function renderReviewItem(i) {
   } else if (st.status === "error") {
     chip = `<span class="chip s-low">Review failed</span>`;
     body = `
-      <div class="r-error"><span>${escapeHtml(st.error)}</span><button class="ghost" data-retry="${i}" type="button">Retry</button></div>
+      <div class="r-error"><span>${escapeHtml(st.error)}</span><button class="ghost small" data-retry="${i}" type="button">Retry</button></div>
       ${answerDetails(st.answer, "Your answer")}`;
   } else if (st.status === "reviewed") {
     const avg = avgScore(st.review);
-    chip = `<span class="chip score ${scoreClass(avg)}">${avg.toFixed(1)} / 5</span>`;
+    chip = scoreRing(avg);
     body = reviewBody(i);
   }
 
   li.className = "r";
   li.innerHTML = `
-    <div class="r-head"><span class="num">${i + 1}.</span><span class="pill ${q.category}">${catLabel(q.category)}</span><span class="spacer"></span>${chip}</div>
+    <div class="r-head"><span class="num">${i + 1}</span><span class="pill ${q.category}">${catLabel(q.category)}</span><span class="spacer"></span>${chip}</div>
     <div class="r-q">${escapeHtml(q.question)}</div>
     <div class="r-testing">${escapeHtml(q.testing)}</div>
     ${tagList(q.themes)}
@@ -1058,8 +1206,8 @@ function saveBar(i) {
         <p class="r-label">Tag this story (pick any that apply, or add your own)</p>
         ${tagEditor(q.category, st.saveTags)}
         <div class="actions">
-          <button class="primary" data-action="save-confirm" data-i="${i}" type="button">Save story</button>
-          <button class="ghost" data-action="save-cancel" data-i="${i}" type="button">Cancel</button>
+          <button class="primary small" data-action="save-confirm" data-i="${i}" type="button">Save story</button>
+          <button class="ghost small" data-action="save-cancel" data-i="${i}" type="button">Cancel</button>
         </div>
       </div>`;
   }
@@ -1069,7 +1217,7 @@ function saveBar(i) {
       <span class="save-hint">${strong
         ? "Strong answer. Worth keeping as a go-to story."
         : `Scored below ${STRONG_SCORE.toFixed(1)}. Save it if it's still your best story for this theme, and improve it later.`}</span>
-      <button class="${strong ? "primary" : "ghost"}" data-action="save-open" data-i="${i}" type="button">Save to story bank</button>
+      <button class="${strong ? "primary" : "ghost"} small" data-action="save-open" data-i="${i}" type="button">Save to story bank</button>
     </div>`;
 }
 
@@ -1299,7 +1447,7 @@ function storyCard(s) {
       <span class="pill ${s.category === "technical" ? "technical" : "behavioral"}">${catLabel(s.category)}</span>
       ${s.sample ? `<span class="chip">Sample</span>` : ""}
       <span class="spacer"></span>
-      <span class="chip score ${scoreClass(s.score)}">${s.score.toFixed(1)} / 5</span>
+      ${scoreRing(s.score)}
     </div>
     <div class="r-q">${escapeHtml(s.question)}</div>
     <div class="r-testing">${meta}</div>`;
@@ -1312,8 +1460,8 @@ function storyCard(s) {
           <textarea class="story-answer">${escapeHtml(s.answer)}</textarea>
           ${tagEditor(s.category, s.themes)}
           <div class="actions">
-            <button class="primary" data-action="story-save" data-id="${s.id}" type="button">Save changes</button>
-            <button class="ghost" data-action="story-cancel" type="button">Cancel</button>
+            <button class="primary small" data-action="story-save" data-id="${s.id}" type="button">Save changes</button>
+            <button class="ghost small" data-action="story-cancel" type="button">Cancel</button>
           </div>
         </div>
       </li>`;
@@ -1445,6 +1593,10 @@ document.addEventListener("click", (e) => {
   }
 });
 
+$("start").addEventListener("click", () => {
+  $("setup").scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => jd.focus({ preventScroll: true }), 400);
+});
 $("to-bank").addEventListener("click", () => $("bank").scrollIntoView({ behavior: "smooth", block: "start" }));
 $("bank-export").addEventListener("click", exportStories);
 $("bank-import").addEventListener("change", (e) => {
