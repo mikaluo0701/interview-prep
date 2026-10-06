@@ -203,12 +203,13 @@ button.big { padding: 17px 34px; font-size: 16px; }
 /* Laptop and up: two columns. Nibbles and the speech bubble on the left, the active panel on the right. */
 @media (min-width: 1024px) {
   .stage { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 40px; align-items: center; padding: 28px 40px; }
-  .stage > .stage-top, .stage[data-mode] > .stage-top { grid-column: 1; grid-row: 1 / span 3; grid-template-columns: 1fr; justify-items: center; gap: 20px; }
+  .stage > .stage-top, .stage[data-mode] > .stage-top { grid-column: 1; grid-row: 1 / span 3; grid-template-columns: 1fr; justify-items: center; gap: 14px; }
   .stage > .feed, .stage > .interview, .stage > .done { grid-column: 2; margin-top: 0; }
   .stage[data-mode="generating"] > .stage-top { grid-column: 1 / -1; min-height: 520px; align-content: center; }
-  .monster-wrap, .stage[data-mode="interview"] .monster-wrap { max-width: min(360px, 40vh); }
+  .monster-wrap, .stage[data-mode="interview"] .monster-wrap { max-width: min(380px, 40vh); }
   .stage[data-mode="generating"] .monster-wrap { max-width: min(400px, 48vh); }
-  .bubble { max-width: 460px; margin: 0 auto; font-size: 20px; }
+  .bubble { max-width: 440px; margin: 0 auto; font-size: 20px; }
+  .stage .drill { max-width: 440px; margin-left: auto; margin-right: auto; }
   .stage[data-mode="interview"] .bubble { font-size: 22px; }
   .stage[data-mode="generating"] .bubble { max-width: 560px; text-align: center; }
   .bubble::before { left: 50%; top: -9px; margin: 0 0 0 -11px; }
@@ -218,10 +219,25 @@ button.big { padding: 17px 34px; font-size: 16px; }
   .food { padding: 16px 20px; gap: 10px; }
   .food textarea { min-height: 104px; height: 104px; }
   .dropzone { min-height: 104px; }
-  .feed-foot { flex-wrap: nowrap; gap: 14px; }
-  .key-panel { flex: 1 1 auto; min-width: 0; }
-  .start-wrap { flex: none; gap: 4px; max-width: 250px; text-align: right; }
+  /* Bottom of the feed panel: key + track side by side, full-width start, then hint and sample link. */
+  .feed-foot { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "key track" "start start" "hint sample"; gap: 10px 12px; align-items: start; }
+  .key-panel { grid-area: key; min-width: 0; }
+  .start-wrap { display: contents; }
+  .track-pick { grid-area: track; margin: 0; min-height: 48px; padding: 8px 10px 8px 16px; border-radius: 18px; justify-content: space-between; background: color-mix(in srgb, var(--surface) 70%, transparent); font-size: 13.5px; font-weight: 700; }
+  .track-pick select { max-width: 60%; }
+  .start-wrap #start { grid-area: start; width: 100%; }
+  .start-wrap .start-hint { grid-area: hint; align-self: center; text-align: left; }
+  .start-wrap #sample-food { grid-area: sample; justify-self: end; align-self: center; }
   .interview textarea { min-height: 280px; }
+}
+
+/* Short laptop screens (e.g. 1280×800): slightly shorter text boxes so the start button and footer fit. */
+@media (min-width: 1024px) and (max-height: 820px) {
+  .food textarea, .dropzone { min-height: 84px; height: 84px; }
+}
+
+@media (min-width: 1360px) {
+  .stage { grid-template-columns: minmax(0, 11fr) minmax(0, 13fr); column-gap: 44px; }
 }
 
 /* ---------- Nibbles ---------- */
@@ -370,6 +386,7 @@ button.link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .seg.skipped { background: repeating-linear-gradient(135deg, var(--border-strong) 0 3px, transparent 3px 6px); }
 .seg.current { background: var(--text); }
 .p-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+.p-foot > .actions { margin-left: auto; }
 kbd { font: 700 11px/1 var(--sans); padding: 4px 7px; border-radius: 7px; background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); }
 .done-title { font-family: var(--display); font-weight: 500; font-size: 24px; line-height: 1.25; margin: 0 0 6px; letter-spacing: -0.015em; }
 .done-text { color: var(--muted); margin: 0 0 18px; font-size: 15px; }
@@ -491,7 +508,7 @@ input.tag-add { width: 160px; padding: 7px 14px; font-size: 13px; border-radius:
 .drill-text { display: contents; }
 .drill-sub { grid-column: 1 / -1; }
 #start-drill { grid-column: 2; grid-row: 1; }
-.drill.locked { background: transparent; border-style: dashed; box-shadow: none; }
+.drill.locked { background: color-mix(in srgb, var(--surface) 55%, transparent); border: 1.5px dashed var(--border-strong); box-shadow: none; }
 .drill-title { margin: 0; font: 600 14.5px var(--display); grid-column: 1; grid-row: 1; }
 .drill-sub { margin: 0; font-size: 13px; color: var(--muted); }
 
