@@ -2,7 +2,8 @@
 import { app, countBy } from "./state.js";
 import { STRONG_SCORE } from "./config.js";
 import { addStory, tagEditor, readTags } from "./bank.js";
-import { $, escapeHtml, uuid, catLabel, clampScore, scoreClass, avgScore, scoreRing, tagList } from "./util.js";
+import { SKILLS } from "./game.js";
+import { $, escapeHtml, uuid, catLabel, clampScore, scoreClass, avgScore, scoreRing, tagList, fmtTime } from "./util.js";
 
 let onRetry = () => {};
 let onChange = () => {};
@@ -71,7 +72,31 @@ export function renderReviewItem(i) {
     <div class="r-q">${escapeHtml(q.question)}</div>
     <div class="r-testing">${escapeHtml(q.testing)}</div>
     ${tagList(q.themes)}
+    ${answerMeta(st)}
     ${body ? `<div class="r-body">${body}</div>` : ""}`;
+}
+
+// "⏱ 1:47 / 2:00 · 🎤 Spoken · +28 XP" under answered questions.
+function answerMeta(st) {
+  if (st.seconds == null) return "";
+  const parts = [
+    `<span class="${st.limit && st.seconds > st.limit ? "s-low" : ""}">⏱ ${fmtTime(st.seconds)}${st.limit ? ` / ${fmtTime(st.limit)}` : ""}</span>`,
+    st.inputMode === "spoken" ? "🎤 Spoken" : "⌨️ Typed"
+  ];
+  if (st.xp) parts.push(`<b class="xp-gain">+${st.xp} XP</b>`);
+  return `<div class="r-meta">${parts.join(" · ")}</div>`;
+}
+
+function skillChips(skills) {
+  if (!skills) return "";
+  return `
+    <div>
+      <p class="r-label">Interview skills</p>
+      <div class="skill-row">${SKILLS.map(({ key, label }) => {
+        const n = clampScore(skills[key]);
+        return `<span class="skill ${scoreClass(n)}"><span>${label}</span><b>${n}</b></span>`;
+      }).join("")}</div>
+    </div>`;
 }
 
 function answerDetails(text, label) {
@@ -107,6 +132,7 @@ function reviewBody(i) {
       <p class="r-label">Rubric scores</p>
       <div class="crit">${crit}</div>
     </div>
+    ${skillChips(r.skills)}
     <div class="two">
       <div><p class="r-label">What worked</p>${list(r.worked)}</div>
       <div><p class="r-label">What was missing</p>${list(r.missing)}</div>

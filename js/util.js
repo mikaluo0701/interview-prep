@@ -23,6 +23,12 @@ export function debounce(fn, ms) {
 // First non-empty line of a job description, used as a short role label.
 export const roleLabel = (text) => (String(text || "").split("\n").map((l) => l.trim()).find(Boolean) || "").slice(0, 90);
 
+// Seconds as m:ss.
+export function fmtTime(seconds) {
+  const t = Math.max(0, Math.round(seconds));
+  return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
+}
+
 export const catLabel = (c) => (c === "technical" ? "Technical" : "Behavioral");
 
 // ---------- Scores ----------

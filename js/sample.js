@@ -1,379 +1,383 @@
 // Sample job, résumé, questions, answers and reviews: used when no API key is entered.
+// The company, school and candidate are fictional.
 
-export const SAMPLE_JD = `Senior Backend Engineer — Payments Platform
-Ledgerline · Remote (US) · Full-time
+export const SAMPLE_JD = `Product Manager, Small Business Payments (MBA)
+Ledgerline · New York or Remote (US) · Full-time · Starts summer 2027
 
-About the role
-Ledgerline moves money for 4,000+ small businesses. Our Payments Platform team owns the services that authorize, capture, refund, and settle roughly 2 million transactions a day. We're looking for a senior engineer to help us scale the core ledger and harden our money-movement APIs.
+About Ledgerline
+Ledgerline helps 40,000 small businesses send invoices and get paid. Our customers are bakeries, landscapers, agencies and clinics that can't wait 60 days for cash. The Small Business Payments team owns everything between "invoice sent" and "money in the bank."
 
 What you'll do
-- Design and build backend services in Go (some legacy Java) that process card and ACH payments
-- Own the double-entry ledger and nightly settlement/reconciliation against bank files
-- Make our public APIs safe to retry: idempotency, exactly-once side effects, clear failure modes
-- Work with Kafka-based event pipelines that feed risk, reporting, and customer notifications
-- Partner with Product, Finance, and Compliance on requirements and trade-offs
-- Participate in a weekly on-call rotation and lead incident reviews
-- Mentor mid-level engineers and raise the bar on design reviews
+- Own the invoicing and payments experience for small businesses and the customers who pay them
+- Turn customer research and data into a roadmap, and make hard prioritization calls
+- Set success metrics, design experiments, and decide what ships
+- Lead engineering, design, risk and sales partners without direct authority
+- Present strategy and results to the executive team
 
 What we're looking for
-- 5+ years building production backend systems; 2+ in Go, Java, or similar
-- Strong PostgreSQL skills: schema design, transactions, isolation levels, query tuning
-- Experience with distributed systems and message queues (Kafka preferred)
-- A track record of improving reliability or performance with measurable results
-- Payments, fintech, or other correctness-critical domain experience is a plus`;
+- MBA graduating in 2027, with 3+ years of experience in consulting, banking, operations or product
+- Strong analytical skills; comfortable with SQL and reading experiment results
+- Evidence of leading cross-functional work and influencing without authority
+- Customer empathy and comfort with ambiguity
+- Interest in fintech or small business is a plus`;
 
-export const SAMPLE_RESUME = `JORDAN REYES
-Backend Engineer · Denver, CO · jordan.reyes@example.com
-
-EXPERIENCE
-
-Brightcart — Senior Software Engineer, Checkout Team        2021 – Present
-- Led the migration of checkout from a Rails monolith to four Go services over 14 months with zero customer-facing downtime
-- Cut checkout API p99 latency from 480ms to 120ms by removing N+1 queries, adding a read replica, and moving tax calculation off the hot path
-- Designed a Kafka order-events pipeline (~600k events/day) consumed by fulfillment, email, and analytics
-- Introduced idempotency keys on the payment-capture endpoint, reducing duplicate-charge support tickets by 92%
-- Mentored two junior engineers through their first on-call rotations; both promoted within 18 months
-- Wrote the team's incident review template, now used across engineering
-
-Routewise (logistics startup) — Software Engineer          2018 – 2021
-- Built route-optimization APIs in Python/Django and PostgreSQL serving 300 fleet customers
-- Reduced nightly batch job runtime from 5 hours to 40 minutes by partitioning work and parallelizing with Celery
-- Owned the carrier-integration service; handled on-call for 12 external carrier APIs
-
-SKILLS
-Go, Python, Ruby, SQL · PostgreSQL, Redis, Kafka · AWS (ECS, RDS, SQS) · Datadog, OpenTelemetry
+export const SAMPLE_RESUME = `PRIYA SHAH
+MBA Candidate, Class of 2027 · priya.shah@example.com
 
 EDUCATION
-B.S. Computer Science, Colorado State University, 2018`;
+Hartwell School of Business — MBA Candidate, 2027
+- VP of Product, Tech Club; organized a 40-person PM case competition
+Riverside University — B.A. Economics, 2019
 
-// Each sample question carries a sample answer and the review of that answer,
-// so the whole flow can be tried without an API key.
+EXPERIENCE
+Brightcart — Product Management Intern, Summer 2026
+- Shipped a seller payout dashboard used by 3,000 sellers in six weeks
+- Cut payout-related support tickets by 35% in the first month after launch
+
+Northgate Consulting — Senior Consultant, 2021–2025; Analyst, 2019–2021
+- Led a 4-person team redesigning small-business onboarding for a regional bank; cut onboarding time from 9 days to 3
+- Built a pricing model for a payments client, sizing a $400M opportunity
+- Ran workshops with C-suite clients; managed and coached 3 analysts
+- As an analyst: market sizing and commercial due diligence for private equity clients
+
+SKILLS
+Excel modeling, SQL (intermediate), Figma (basic), customer interviews, experiment design`;
+
+// Each question carries a sample answer and the review of that answer, so the whole flow
+// (including skill scores) can be tried without an API key.
 export const SAMPLE_OUTPUT = {
+  track: "product",
   behavioral: [
     {
-      question: "Walk me through the checkout migration at Brightcart. How did you decide what to carve out of the monolith first, and who did you have to convince?",
-      testing: "Judgment on sequencing a risky migration, and influence without authority. They'll listen for whether you drove the decisions or executed someone else's plan.",
-      anchor: "Résumé: monolith → Go migration with zero downtime",
-      themes: ["Influence without authority", "Ownership"],
+      question: "Walk me through your résumé, and tell me why product management is the right next step after four years in consulting.",
+      testing: "Whether you can tell a crisp two-minute career story with a clear thread, and whether your move into product is pulled by real interest rather than pushed by leaving consulting.",
+      anchor: "Résumé: Northgate Consulting → MBA → PM internship",
+      themes: ["Career story"],
       rubric: [
-        "Explains how the first slice was chosen, with a concrete rationale",
-        "Describes who needed convincing and how buy-in was earned",
-        "Makes their own role and decisions clear, distinct from the team's"
+        "Tells a concise, chronological story with a clear thread",
+        "Explains the pivot to product with concrete evidence of interest and fit",
+        "Connects the story to this role at Ledgerline"
       ],
-      sampleAnswer: "At Brightcart the checkout monolith was getting really slow and hard to deploy. We decided to start with the tax calculation piece because it was fairly self-contained. I wrote a proposal doc and presented it at architecture review, and after some discussion people agreed. We used a strangler pattern with a proxy in front, so we could route traffic gradually. Over 14 months we moved everything into four Go services and there was no downtime. It was a big team effort and I learned a lot about migrations.",
+      sampleAnswer: "Sure. I studied economics, then joined Northgate Consulting as an analyst, where I did market sizing and due diligence. I got promoted to senior consultant and led teams on projects like a small-business onboarding redesign for a regional bank. I really enjoyed working with the product and engineering teams on that project, more than the slide work honestly. So I decided to get my MBA to pivot into product. Over the summer I interned at Brightcart as a PM and shipped a seller payout dashboard. Now I'm excited to go into product full time, and payments is a space I find really interesting.",
       sampleReview: {
         scores: [
-          { criterion: "Explains how the first slice was chosen, with a concrete rationale", score: 3, justification: "Names tax calculation and says it was self-contained, but never weighs it against other candidates or says why low coupling beat higher value." },
-          { criterion: "Describes who needed convincing and how buy-in was earned", score: 2, justification: "\"After some discussion people agreed\" skips the actual objections and how you answered them." },
-          { criterion: "Makes their own role and decisions clear, distinct from the team's", score: 2, justification: "Mostly \"we\"; the proposal doc is the only decision clearly attributed to you." }
+          { criterion: "Tells a concise, chronological story with a clear thread", score: 3, justification: "Chronological and easy to follow, but it lists roles instead of building a thread, and spends too long on the analyst years." },
+          { criterion: "Explains the pivot to product with concrete evidence of interest and fit", score: 3, justification: "The onboarding project and the internship are real evidence, but \"more than the slide work\" frames product as an escape from consulting." },
+          { criterion: "Connects the story to this role at Ledgerline", score: 2, justification: "\"Payments is a space I find really interesting\" is the only link to Ledgerline, and it's generic." }
         ],
+        skills: { structure: 3, specificity: 3, impact: 2, relevance: 2, concision: 3 },
         worked: [
-          "A concrete first slice (tax calculation) rather than a vague \"we started small\"",
-          "Strangler pattern with gradual routing shows you de-risked the cutover",
-          "Ties back to the 14-month, zero-downtime result on your résumé"
+          "Clear chronological order that's easy to follow",
+          "Uses the onboarding redesign and the internship as proof of interest in product",
+          "Fits comfortably inside two minutes"
         ],
         missing: [
-          "Who pushed back and what their concern was",
-          "Why tax first instead of, say, payment capture: the trade-off you made",
-          "Any evidence the first slice worked before you continued"
+          "A one-line thread up front, e.g. \"I've spent my career helping small businesses get paid faster\"",
+          "Why Ledgerline and small-business payments specifically",
+          "One result from the internship (the 35% ticket drop) to show you can ship"
         ],
         weakest_sentence: {
-          original: "It was a big team effort and I learned a lot about migrations.",
-          rewrite: "My call was to ship tax first and hold payment capture until the proxy had run at 100% for [two weeks]; that sequencing is why we never had a customer-facing outage."
+          original: "Now I'm excited to go into product full time, and payments is a space I find really interesting.",
+          rewrite: "That's why Ledgerline is my first choice: you're solving the exact problem I saw at the bank, where small businesses waited [nine days] just to start taking payments."
         }
       }
     },
     {
-      question: "Tell me about an incident you were on call for where the root cause turned out to be different from what you first assumed.",
-      testing: "How you debug under pressure, communicate while an incident is live, and whether you avoid anchoring on the first hypothesis.",
-      anchor: "JD: weekly on-call rotation and leading incident reviews",
-      themes: ["Ambiguity", "Ownership"],
+      question: "Why Ledgerline, and why small-business payments rather than the bigger consumer fintech players?",
+      testing: "Genuine, researched interest in the company and its customers, rather than a generic \"fintech is exciting\" answer.",
+      anchor: "JD: Small Business Payments team",
+      themes: ["Career story"],
       rubric: [
-        "Describes the initial hypothesis and the evidence that disproved it",
-        "Shows how they communicated during the incident",
-        "Names a concrete follow-up that prevented recurrence"
+        "Shows specific knowledge of Ledgerline's product, customers or strategy",
+        "Gives a personal reason tied to their experience",
+        "Explains why small business over consumer fintech"
       ],
-      sampleAnswer: "One night I got paged because checkout error rates spiked to about 8%. I assumed it was a bad deploy since we had shipped that afternoon, so I rolled it back, but errors kept happening. Then I looked in Datadog and saw timeouts to our tax provider. It turned out they were having an outage. We added a fallback that uses cached tax rates if the provider is slow. I posted updates in the incident channel.",
+      sampleAnswer: "I used Ledgerline's invoicing when I was helping a friend's bakery with their books, and it was really easy to use. I also think small businesses are underserved compared to consumers, and there's a lot of opportunity there. And from my consulting work with the bank I know how painful onboarding and getting paid can be for small businesses. I like that Ledgerline is mission driven.",
       sampleReview: {
         scores: [
-          { criterion: "Describes the initial hypothesis and the evidence that disproved it", score: 4, justification: "Clear wrong hypothesis (the deploy) and the evidence that overturned it (errors persisted after rollback, timeouts in Datadog)." },
-          { criterion: "Shows how they communicated during the incident", score: 2, justification: "One sentence about posting updates; no cadence, audience, or customer-facing messaging." },
-          { criterion: "Names a concrete follow-up that prevented recurrence", score: 4, justification: "Cached tax-rate fallback is a real fix, though you don't say whether it was tested or has fired since." }
+          { criterion: "Shows specific knowledge of Ledgerline's product, customers or strategy", score: 2, justification: "Using the product once is a start, but there's nothing about Ledgerline's strategy, customers or recent launches." },
+          { criterion: "Gives a personal reason tied to their experience", score: 4, justification: "The bakery and the bank project are real, personal reasons, though they're stated rather than told as a story." },
+          { criterion: "Explains why small business over consumer fintech", score: 2, justification: "\"Underserved\" is asserted without saying what makes the problem harder or more interesting than consumer payments." }
         ],
+        skills: { structure: 2, specificity: 3, impact: 2, relevance: 3, concision: 4 },
         worked: [
-          "Opens with a specific signal (8% error rate) instead of \"something broke\"",
-          "Rolling back first is a defensible move, and you say why you did it",
-          "Ends with a real fix, not just \"we monitored it\""
+          "The bakery is a memorable personal connection",
+          "Links back to your consulting project"
         ],
         missing: [
-          "How long the incident lasted and how many customers were affected",
-          "Who you updated (support, leadership) and how often",
-          "What you changed in your own debugging habits, since the question is about wrong assumptions"
+          "One specific fact about Ledgerline (a product, metric or launch) that shows research",
+          "What exactly is underserved: cash-flow gaps, late payments, onboarding friction",
+          "Why the business-payments problem excites you more than consumer fintech"
         ],
         weakest_sentence: {
-          original: "I posted updates in the incident channel.",
-          rewrite: "Every [15] minutes I posted status in the incident channel and gave support a one-line customer message, so they weren't guessing while I debugged."
+          original: "I like that Ledgerline is mission driven.",
+          rewrite: "What pulls me to Ledgerline is [your focus on getting invoices paid faster]: at the bank I saw small businesses wait weeks for cash, and that's the problem I want to spend the next five years on."
         }
       }
     },
     {
-      question: "Describe a time you pushed back on a product or business deadline because you thought the change was risky. What happened?",
-      testing: "Whether you can hold a line on correctness in a money-moving system while still finding a path forward with Product and Finance.",
-      anchor: "JD: partner with Product, Finance, and Compliance on trade-offs",
-      themes: ["Conflict", "Influence without authority"],
+      question: "Tell me about the small-business onboarding redesign. How did you get the bank's engineering and risk teams to change how they worked when you had no authority over them?",
+      testing: "Influence without authority, the core of the PM job. They'll look for how you built trust, used data, and handled the risk team's concerns.",
+      anchor: "Résumé: onboarding cut from 9 days to 3 · JD: lead partners without direct authority",
+      themes: ["Influence without authority", "Leadership"],
       rubric: [
-        "Identifies the specific risk and why it mattered",
-        "Shows constructive disagreement with concrete alternatives",
-        "States the outcome honestly, including any cost"
+        "Describes the specific resistance and why each team pushed back",
+        "Shows concrete tactics used to win buy-in",
+        "States a measurable outcome and their personal role"
       ],
-      sampleAnswer: "Our PM wanted to launch a buy-now-pay-later option before Black Friday. I thought it was too risky because we hadn't tested refunds. I told them I didn't think it was a good idea and we had a few meetings about it. Eventually we delayed it by two weeks and it launched fine.",
+      sampleAnswer: "The bank's onboarding took nine days, mostly because risk reviewed every application by hand. Risk didn't want to change because they'd been burned by fraud before, and engineering was busy with a core banking migration. I sat with the risk analysts for two days to see which checks actually caught fraud, and found that 80% of applications were low risk and could be auto-approved with three data checks. I brought that analysis to the risk lead first, privately, and we agreed to pilot it on 10% of applications. For engineering, I scoped the pilot to reuse an existing rules engine, so it took two sprints instead of a quarter. After the pilot showed no increase in fraud, we rolled it out, and onboarding went from nine days to three.",
       sampleReview: {
         scores: [
-          { criterion: "Identifies the specific risk and why it mattered", score: 3, justification: "Untested refunds is a real risk, but you don't say what could have gone wrong or what was at stake." },
-          { criterion: "Shows constructive disagreement with concrete alternatives", score: 2, justification: "\"I told them I didn't think it was a good idea\" is a veto, not a proposal; no alternatives offered." },
-          { criterion: "States the outcome honestly, including any cost", score: 2, justification: "\"Launched fine\" skips the cost of missing Black Friday and whether the PM agreed in the end." }
+          { criterion: "Describes the specific resistance and why each team pushed back", score: 5, justification: "Clear about why each team resisted: risk's past fraud losses and engineering's competing migration." },
+          { criterion: "Shows concrete tactics used to win buy-in", score: 4, justification: "Shadowing the analysts, pre-wiring the risk lead and shrinking the engineering ask are concrete, credible tactics." },
+          { criterion: "States a measurable outcome and their personal role", score: 4, justification: "Nine days to three is a strong result; you could say more about what you personally owned versus the team." }
         ],
+        skills: { structure: 5, specificity: 4, impact: 4, relevance: 4, concision: 3 },
         worked: [
-          "A real, recognisable scenario with a hard deadline",
-          "Names the specific gap (refunds untested) rather than general unease"
+          "Diagnoses each team's motivation before proposing a fix",
+          "Pre-wiring the risk lead privately is a mature influence move",
+          "Ends on a clear, quantified result"
         ],
         missing: [
-          "An alternative you proposed, such as a limited launch or a feature flag",
-          "The business cost of the two-week delay and who signed off on it",
-          "Any data you used to make the case"
+          "One line on what you'd do differently",
+          "Who else was on your team, and what was yours alone"
         ],
         weakest_sentence: {
-          original: "I told them I didn't think it was a good idea and we had a few meetings about it.",
-          rewrite: "I showed the PM that a failed refund would leave customers charged with no way to reverse it, and offered two options: launch to [5%] of merchants with manual refunds, or slip two weeks and test the full flow."
+          original: "After the pilot showed no increase in fraud, we rolled it out, and onboarding went from nine days to three.",
+          rewrite: "After [six weeks] the pilot showed no rise in fraud, so I made the case to the COO to roll it out bank-wide, and onboarding dropped from nine days to three."
         }
       }
     },
     {
-      question: "You mentored two junior engineers through on-call. Tell me about a moment one of them struggled, and what you changed in how you supported them.",
-      testing: "Mentorship as a real part of the senior role: patience, adapting your approach, and giving people ownership rather than taking over.",
-      anchor: "Résumé: mentored two engineers, both promoted · JD: mentor mid-level engineers",
-      themes: ["Mentoring", "Leadership"],
+      question: "Tell me about a time a client or senior stakeholder strongly disagreed with your recommendation. What did you do?",
+      testing: "How you handle conflict with senior people: whether you listen, adapt, and still stand behind your analysis.",
+      anchor: "Résumé: ran workshops with C-suite clients",
+      themes: ["Conflict"],
       rubric: [
-        "Describes a specific struggle with concrete detail",
-        "Explains what they changed in their own approach and why",
-        "Shows the result for the mentee, with evidence"
+        "Describes the disagreement and the stakes clearly",
+        "Shows how they listened and adapted, not just persuaded",
+        "Explains the outcome and the relationship afterwards"
       ],
-      sampleAnswer: "One of the engineers I mentored, Sam, was really anxious about his first on-call week. He would escalate everything to me, even small alerts. At first I just helped him fix things, but I realized that wasn't helping him learn. So I started asking him what he thought the problem was before giving answers. I also paired with him on writing runbooks for our most common alerts. By his third rotation he was handling almost everything himself, and he later got promoted.",
+      sampleAnswer: "On a pricing project, the client's CFO disagreed with our recommendation to raise prices for their largest customers. He thought they would leave. I listened to his concerns and then we went back and did more analysis. We showed him the data and eventually he agreed with us. The project was a success and the client extended our contract.",
       sampleReview: {
         scores: [
-          { criterion: "Describes a specific struggle with concrete detail", score: 5, justification: "Escalating every alert during a first on-call week is specific, believable, and sets up the rest of the story." },
-          { criterion: "Explains what they changed in their own approach and why", score: 4, justification: "Clear shift from fixing to asking, and you name why the first approach failed." },
-          { criterion: "Shows the result for the mentee, with evidence", score: 3, justification: "\"Almost everything himself\" is vague, and the promotion likely had many causes." }
+          { criterion: "Describes the disagreement and the stakes clearly", score: 2, justification: "The stakes are missing: how big was the price change, and how much revenue was at risk?" },
+          { criterion: "Shows how they listened and adapted, not just persuaded", score: 2, justification: "\"We did more analysis\" hides what you changed; it reads as persuading him until he gave in." },
+          { criterion: "Explains the outcome and the relationship afterwards", score: 3, justification: "A contract extension is a real outcome, but there's nothing about the relationship with the CFO." }
         ],
+        skills: { structure: 3, specificity: 2, impact: 3, relevance: 3, concision: 4 },
         worked: [
-          "You admit your first approach was wrong, which is exactly what this question probes",
-          "Runbooks are a durable fix that helped the whole team, not just Sam",
-          "Clear arc: problem, change, result"
+          "Picks a genuinely senior stakeholder",
+          "Shows you didn't just escalate or give up"
         ],
         missing: [
-          "A number for the improvement, such as escalations per week before and after",
-          "How you balanced coaching against incident speed while he was still learning"
+          "What the CFO's concern taught you, and what you changed in the recommendation",
+          "Numbers: the price change, revenue at risk, churn after launch",
+          "Your own role versus \"we\""
         ],
         weakest_sentence: {
-          original: "By his third rotation he was handling almost everything himself, and he later got promoted.",
-          rewrite: "By his third rotation he escalated [two] alerts in a week instead of [fifteen], and he now runs on-call onboarding for new hires."
+          original: "We showed him the data and eventually he agreed with us.",
+          rewrite: "I rebuilt the model with his churn assumptions, which showed only [3 of 40] accounts at risk, and we agreed to phase the increase in over two quarters with a retention plan for those three."
         }
       }
     },
     {
-      question: "What's a technical decision you made in the last few years that you'd reverse if you could?",
-      testing: "Self-awareness and honesty. Strong answers name a real cost, explain what signal they missed, and describe what they do differently now.",
-      anchor: "General seniority check",
-      themes: ["Failure"],
+      question: "At Brightcart you shipped a seller payout dashboard in six weeks. What did you cut to get there, and how did you decide?",
+      testing: "Prioritization under a deadline, and whether you made the trade-offs yourself using customer evidence.",
+      anchor: "Résumé: payout dashboard shipped in six weeks · JD: make hard prioritization calls",
+      themes: ["Prioritization", "Ambiguity"],
       rubric: [
-        "Names a real decision with meaningful consequences",
-        "Explains what signal they missed at the time",
-        "Describes what they do differently now, with an example"
+        "Names specific features that were cut or deferred",
+        "Explains the decision criteria, ideally with customer evidence",
+        "Reflects on the outcome of the trade-offs"
       ],
-      sampleAnswer: "Probably choosing to use Redis for our session store at Routewise. It worked fine but it added operational complexity. Looking back, Postgres would have been enough. Now I try to use boring technology when I can.",
+      sampleAnswer: "We had a long list of feature requests, so I prioritized based on impact and effort. We decided to focus on the most important features for sellers, like seeing when their payout would arrive. Some nice-to-have features like exporting to CSV were cut. We launched on time and sellers liked it, and support tickets went down 35%.",
       sampleReview: {
         scores: [
-          { criterion: "Names a real decision with meaningful consequences", score: 3, justification: "A genuine choice, but \"it worked fine\" undercuts the idea that it had real costs." },
-          { criterion: "Explains what signal they missed at the time", score: 1, justification: "Nothing on what you knew then or why the choice seemed right." },
-          { criterion: "Describes what they do differently now, with an example", score: 2, justification: "\"Boring technology\" is a slogan; no example of applying it since." }
+          { criterion: "Names specific features that were cut or deferred", score: 3, justification: "CSV export is one concrete cut; the other decisions stay vague." },
+          { criterion: "Explains the decision criteria, ideally with customer evidence", score: 2, justification: "\"Impact and effort\" names a framework but gives no reason; there's no customer evidence behind \"most important\"." },
+          { criterion: "Reflects on the outcome of the trade-offs", score: 3, justification: "The 35% ticket drop is a good result, but you don't say whether the cuts hurt anyone." }
         ],
+        skills: { structure: 3, specificity: 2, impact: 3, relevance: 4, concision: 4 },
         worked: [
-          "Picks a real technical decision rather than a disguised strength",
-          "Concise and doesn't get defensive"
+          "Clear headline result (35% fewer tickets)",
+          "Shows you shipped against a hard deadline"
         ],
         missing: [
-          "The concrete cost: incidents, on-call load, or hours spent running Redis",
-          "Why Redis seemed right at the time, which shows your reasoning",
-          "A later decision where you applied the lesson"
+          "How you knew payout timing mattered most (tickets, interviews, data)",
+          "One hard trade-off you argued for or against",
+          "What happened to the cut features afterwards"
         ],
         weakest_sentence: {
-          original: "Now I try to use boring technology when I can.",
-          rewrite: "When we picked a job queue at Brightcart, I argued for a Postgres-backed queue over adding SQS, because I'd seen what a second datastore cost a [three]-person team at Routewise."
+          original: "We decided to focus on the most important features for sellers, like seeing when their payout would arrive.",
+          rewrite: "[Six in ten] payout tickets asked \"when will I get paid?\", so I made the payout date the one thing the dashboard had to get right and pushed CSV export to v2."
+        }
+      }
+    },
+    {
+      question: "Tell me about a time something you owned didn't go as planned.",
+      testing: "Self-awareness and ownership. Strong answers own the mistake, show what was learned, and prove the behavior changed.",
+      anchor: "Classic MBA behavioral question",
+      themes: ["Failure", "Ownership"],
+      rubric: [
+        "Owns a real failure with consequences",
+        "Explains the root cause honestly",
+        "Shows a lasting change in behavior"
+      ],
+      sampleAnswer: "In my first year at Northgate, I built a market sizing model for a client and made a formula error that overstated the market by about 20%. My manager caught it before the client meeting, luckily. Since then I always double-check my work.",
+      sampleReview: {
+        scores: [
+          { criterion: "Owns a real failure with consequences", score: 3, justification: "A real mistake with a number attached, but the consequence was avoided, so the stakes feel low." },
+          { criterion: "Explains the root cause honestly", score: 2, justification: "There's no root cause: why did the error happen, and why didn't you catch it?" },
+          { criterion: "Shows a lasting change in behavior", score: 2, justification: "\"I always double-check my work\" is generic; there's no specific change or later example." }
+        ],
+        skills: { structure: 3, specificity: 3, impact: 2, relevance: 3, concision: 5 },
+        worked: [
+          "A concrete mistake with a size (20%)",
+          "Short and honest"
+        ],
+        missing: [
+          "Why it happened (rushing, no review step, unclear ownership)",
+          "What you built or changed afterwards, such as a model-check routine you taught others",
+          "A later example where the change paid off"
+        ],
+        weakest_sentence: {
+          original: "Since then I always double-check my work.",
+          rewrite: "Since then I build a [three-line] sanity check into every model, comparing the total to a top-down estimate, and I taught it to the analysts I later managed."
         }
       }
     }
   ],
   technical: [
     {
-      question: "A client times out on a payment request and retries, and the customer is charged twice. How would you design the API and storage so that can't happen?",
-      testing: "Idempotency keys with a unique constraint, storing and replaying the original response, and handling a retry that arrives while the first request is still in flight.",
-      anchor: "Résumé: idempotency keys cut duplicate charges 92% · JD: make APIs safe to retry",
-      themes: ["Idempotency"],
+      question: "How would you measure the success of Ledgerline's invoicing product? Pick one north-star metric and defend it.",
+      testing: "Product-metrics judgment: choosing a metric that reflects customer value and the business, and knowing its weak spots.",
+      anchor: "JD: set success metrics and design experiments",
+      themes: ["Product metrics"],
       rubric: [
-        "Uses a client-supplied idempotency key with a uniqueness guarantee in storage",
-        "Returns the stored original response on retry",
-        "Handles a retry that arrives while the first request is still in flight",
-        "Defines key scope and retention"
+        "Picks one clear north-star metric tied to customer value",
+        "Explains why it beats obvious alternatives",
+        "Names guardrail metrics or how the metric could mislead"
       ],
-      sampleAnswer: "I'd have the client send an idempotency key header with each payment request. On the server, before charging, we check if we've seen that key before in a table. If we have, we return the saved response instead of charging again. If not, we process the charge and save the key with the response. That's basically what I built at Brightcart and it cut duplicate charges by 92%.",
+      sampleAnswer: "I'd use the number of invoices sent per month as the north-star metric, because it shows that businesses are using the product. I'd also look at revenue and customer satisfaction. If invoices sent is going up, the product is doing well.",
       sampleReview: {
         scores: [
-          { criterion: "Uses a client-supplied idempotency key with a uniqueness guarantee in storage", score: 3, justification: "Key plus lookup table is right, but check-then-insert without a unique constraint lets two concurrent requests both pass." },
-          { criterion: "Returns the stored original response on retry", score: 5, justification: "Returning the saved response is exactly right and stated clearly." },
-          { criterion: "Handles a retry that arrives while the first request is still in flight", score: 1, justification: "Not addressed, and it's the exact scenario in the question." },
-          { criterion: "Defines key scope and retention", score: 1, justification: "No mention of scoping keys per merchant or how long they're kept." }
+          { criterion: "Picks one clear north-star metric tied to customer value", score: 2, justification: "Invoices sent measures activity, not whether customers got paid, which is the value Ledgerline promises." },
+          { criterion: "Explains why it beats obvious alternatives", score: 1, justification: "No alternatives are compared." },
+          { criterion: "Names guardrail metrics or how the metric could mislead", score: 2, justification: "Revenue and satisfaction are listed, but not as guardrails, and there's no mention of how the metric could mislead." }
         ],
+        skills: { structure: 2, specificity: 2, impact: 2, relevance: 3, concision: 4 },
         worked: [
-          "Correct core pattern, explained simply",
-          "Ties it to a real result from your résumé"
+          "Commits to a single metric",
+          "Short and direct"
         ],
         missing: [
-          "A unique constraint, or insert-first with a 'processing' status, so concurrent requests can't both charge",
-          "What a retry gets while the first request is still processing (e.g. 409 or wait)",
-          "Key scope per merchant and a retention window",
-          "What happens if the processor charge succeeds but saving the response fails"
+          "A metric tied to getting paid, such as invoices paid through Ledgerline within 30 days",
+          "Why it beats invoices sent or payment volume",
+          "Guardrails: time to payment, failed payments, churn"
         ],
         weakest_sentence: {
-          original: "On the server, before charging, we check if we've seen that key before in a table.",
-          rewrite: "Before charging, we insert the key with status 'processing' under a unique constraint on (merchant_id, key); if the insert fails it's a retry, so we return the stored result, or a 409 if the original is still in flight."
+          original: "If invoices sent is going up, the product is doing well.",
+          rewrite: "I'd pick invoice volume paid through Ledgerline within 30 days, because it captures both adoption and the outcome customers care about, with time to payment and payment failures as guardrails."
         }
       }
     },
     {
-      question: "After a Kafka consumer-group rebalance, some order events were processed twice. How do you make the downstream side effects effectively exactly-once?",
-      testing: "Understanding of at-least-once delivery, offset-commit timing, idempotent consumers, dedupe tables, and the transactional outbox pattern.",
-      anchor: "Résumé: Kafka order-events pipeline · JD: Kafka event pipelines",
-      themes: ["Event streaming"],
+      question: "Small businesses send invoices with us, but only 40% get paid through Ledgerline; the rest are paid by check or other apps. How would you raise that number?",
+      testing: "Product sense: diagnosing the problem from the payer's side before jumping to features, then prioritizing a few ideas.",
+      anchor: "JD: own the invoicing and payments experience",
+      themes: ["Product sense"],
       rubric: [
-        "Explains why duplicates happen",
-        "Proposes a concrete idempotent-consumer or dedupe mechanism",
-        "Addresses side effects outside the database"
+        "Diagnoses why payers choose other methods before proposing fixes",
+        "Proposes a few prioritized solutions for payers and businesses",
+        "Says how they'd test the solutions"
       ],
-      sampleAnswer: "Kafka is at-least-once by default, so if a consumer crashes or there's a rebalance before it commits offsets, messages get redelivered. You could use Kafka's exactly-once semantics with transactions. Or you could make the consumer idempotent by storing processed event IDs.",
+      sampleAnswer: "First I would talk to customers to understand why. Then I would add more payment options like Apple Pay and lower the fees. I could also send reminders to people who haven't paid. Finally I'd A/B test these changes.",
       sampleReview: {
         scores: [
-          { criterion: "Explains why duplicates happen", score: 4, justification: "Correct cause (redelivery before offset commit), stated concisely." },
-          { criterion: "Proposes a concrete idempotent-consumer or dedupe mechanism", score: 3, justification: "Names two options but doesn't choose one or say where the dedupe write happens relative to the side effect." },
-          { criterion: "Addresses side effects outside the database", score: 1, justification: "Emails and fulfillment calls aren't covered, and Kafka transactions don't help there." }
+          { criterion: "Diagnoses why payers choose other methods before proposing fixes", score: 2, justification: "\"Talk to customers\" is the right instinct, but there are no hypotheses about why payers still use checks." },
+          { criterion: "Proposes a few prioritized solutions for payers and businesses", score: 3, justification: "Wallets, fees and reminders are sensible, but they aren't prioritized, and fees affect the business model." },
+          { criterion: "Says how they'd test the solutions", score: 2, justification: "\"A/B test these changes\" with no metric or design." }
         ],
+        skills: { structure: 3, specificity: 2, impact: 2, relevance: 4, concision: 4 },
         worked: [
-          "Accurate explanation of redelivery after a rebalance",
-          "Names two real approaches rather than one"
+          "Starts with the customer before features",
+          "Covers both payment options and follow-up"
         ],
         missing: [
-          "Writing the dedupe record and the business change in the same database transaction",
-          "Why Kafka's exactly-once mode doesn't cover external side effects like sending an email",
-          "A recommendation for this system, not just a list of options"
+          "Separating the payer from the business: who chooses the payment method",
+          "Two or three hypotheses (habit, fees passed on, trust, approval workflows)",
+          "A prioritized first bet with a success metric"
         ],
         weakest_sentence: {
-          original: "Or you could make the consumer idempotent by storing processed event IDs.",
-          rewrite: "I'd make each consumer idempotent: insert the event ID into a processed_events table in the same transaction as the business write, so a redelivered event hits the unique constraint and is skipped."
+          original: "Then I would add more payment options like Apple Pay and lower the fees.",
+          rewrite: "My first bet would be [a one-click pay button with saved bank details for repeat payers], since checks usually come from repeat business customers paying out of habit; I'd measure the share of repeat invoices paid online."
         }
       }
     },
     {
-      question: "How would you model a double-entry ledger in PostgreSQL? Which invariants would you enforce in the database, and which in the application?",
-      testing: "Data modeling for money: integer minor units rather than floats, append-only entries, balanced transactions, constraints, and choosing an isolation level.",
-      anchor: "JD: own the double-entry ledger",
-      themes: ["Data modeling"],
+      question: "Engineering has capacity for one of three: recurring invoices, instant payouts, or QuickBooks sync. How do you decide?",
+      testing: "Prioritization with incomplete data: a clear framework, the right inputs, and a decision you're willing to defend.",
+      anchor: "JD: turn research and data into a roadmap",
+      themes: ["Roadmap prioritization"],
       rubric: [
-        "Proposes a sound schema that supports multi-leg transactions",
-        "Enforces balance and immutability, and says where",
-        "Addresses concurrency for balance reads and updates"
+        "Uses a clear framework with stated criteria",
+        "Identifies the data they'd gather for each option",
+        "Makes and defends an actual decision"
       ],
-      sampleAnswer: "I'd have an accounts table and a transactions table. Each transaction has a debit account, a credit account, and an amount. Amounts should be stored as decimals, not floats. Transactions should never be updated, only reversed with a new transaction. Balances could be calculated by summing transactions for an account.",
+      sampleAnswer: "I'd use a framework like RICE to score each feature on reach, impact, confidence and effort. I'd talk to customers and look at the data. I think QuickBooks sync might be the most valuable because a lot of small businesses use QuickBooks, but it depends on the data.",
       sampleReview: {
         scores: [
-          { criterion: "Proposes a sound schema that supports multi-leg transactions", score: 3, justification: "Debit/credit on one row works for simple transfers but can't represent fees or multi-leg transactions." },
-          { criterion: "Enforces balance and immutability, and says where", score: 3, justification: "Append-only with reversals is right, but you don't say whether the database or the app enforces it." },
-          { criterion: "Addresses concurrency for balance reads and updates", score: 1, justification: "Concurrency isn't mentioned, and summing on every read won't hold up at 2M transactions a day." }
+          { criterion: "Uses a clear framework with stated criteria", score: 3, justification: "RICE is a reasonable framework, though you don't apply it to the three options." },
+          { criterion: "Identifies the data they'd gather for each option", score: 2, justification: "\"Talk to customers and look at the data\" doesn't say which data." },
+          { criterion: "Makes and defends an actual decision", score: 2, justification: "A tentative pick hedged with \"it depends\" isn't a decision." }
         ],
+        skills: { structure: 3, specificity: 2, impact: 2, relevance: 3, concision: 4 },
         worked: [
-          "Append-only with reversals is the key ledger principle, and you stated it",
-          "Explicitly rejects floats for money"
+          "Names a structured approach",
+          "Leans toward a choice"
         ],
         missing: [
-          "An entries table, so one transaction can have many legs that sum to zero",
-          "Where invariants live, e.g. a deferred constraint or trigger that checks each transaction balances",
-          "How balances stay fast and correct under concurrent writes (cached balance with row lock, isolation level)"
+          "Tie each option to the north-star metric (getting paid faster)",
+          "Specific data: share of users on QuickBooks, churn reasons, payout-speed complaints",
+          "A committed recommendation, plus what would change your mind"
         ],
         weakest_sentence: {
-          original: "Balances could be calculated by summing transactions for an account.",
-          rewrite: "I'd keep a balance column on each account, updated in the same transaction as its entries with SELECT … FOR UPDATE, and run a nightly job that re-sums entries to prove the cached balances match."
+          original: "I think QuickBooks sync might be the most valuable because a lot of small businesses use QuickBooks, but it depends on the data.",
+          rewrite: "I'd build instant payouts first, because cash flow is the top reason small businesses churn [in our exit surveys], and I'd revisit QuickBooks sync if more than [half] of new sign-ups ask for it."
         }
       }
     },
     {
-      question: "You cut checkout p99 from 480ms to 120ms. Walk me through how you found where the time was actually going.",
-      testing: "That the result is yours. Expect follow-ups on tracing, reading query plans, and why p99 can have different causes than p50.",
-      anchor: "Résumé: p99 latency 480ms → 120ms",
-      themes: ["Performance tuning"],
+      question: "An A/B test of a new checkout page shows conversion up 4%, but refund requests also rose. What do you do?",
+      testing: "Experiment judgment: checking significance, weighing a guardrail against the main metric, and deciding on net impact.",
+      anchor: "JD: design experiments and decide what ships",
+      themes: ["Experimentation"],
       rubric: [
-        "Describes the measurement method",
-        "Identifies specific causes and ties each to a fix",
-        "Explains what drove tail latency specifically"
+        "Checks whether the results are statistically and practically significant",
+        "Investigates why refunds rose before deciding",
+        "Weighs net impact and makes a recommendation"
       ],
-      sampleAnswer: "We added OpenTelemetry tracing to checkout and looked at the slowest traces in Datadog. We found a lot of N+1 queries when loading cart items, so we fixed those with eager loading. We also found that tax calculation was slow, so we moved it to happen earlier in the flow. And we added a read replica for some queries. Together that got p99 from 480 to 120.",
+      sampleAnswer: "I would check if the results are statistically significant. If conversion is up 4%, that's good, but refunds going up is bad. I'd look into why refunds went up, maybe the new page is confusing people. Then I'd decide whether to launch based on the overall impact.",
       sampleReview: {
         scores: [
-          { criterion: "Describes the measurement method", score: 4, justification: "Tracing and reading the slowest traces is the right method, clearly stated." },
-          { criterion: "Identifies specific causes and ties each to a fix", score: 4, justification: "Three causes, each paired with a specific fix." },
-          { criterion: "Explains what drove tail latency specifically", score: 2, justification: "Doesn't say why these hurt p99 in particular, e.g. large carts driving N+1 cost." }
+          { criterion: "Checks whether the results are statistically and practically significant", score: 3, justification: "Mentions significance, but not sample size, test length, or the fact that refunds lag purchases." },
+          { criterion: "Investigates why refunds rose before deciding", score: 3, justification: "\"Maybe the page is confusing\" is a fair hypothesis, but there's no way to check it." },
+          { criterion: "Weighs net impact and makes a recommendation", score: 2, justification: "\"Decide based on the overall impact\" leaves out the actual comparison and the call." }
         ],
+        skills: { structure: 4, specificity: 2, impact: 3, relevance: 4, concision: 4 },
         worked: [
-          "Concrete tools and method, which makes the résumé claim credible",
-          "Each cause is paired with a fix"
+          "Treats refunds as a guardrail, not noise",
+          "Right order: validate, diagnose, then decide"
         ],
         missing: [
-          "Which change contributed most, and how you knew",
-          "Why the tail was slow: big carts, cold caches, or provider timeouts",
-          "Replica-lag trade-offs for checkout reads"
+          "Net revenue per visitor as the deciding metric",
+          "Segmenting refunds by reason and by new versus returning buyers",
+          "A concrete call, such as holding the launch and fixing the cause first"
         ],
         weakest_sentence: {
-          original: "Together that got p99 from 480 to 120.",
-          rewrite: "Fixing the N+1 queries alone took p99 from 480 to [260]ms, because the slowest traces were all carts with [30+] items; moving tax off the hot path got us the rest."
-        }
-      }
-    },
-    {
-      question: "Our nightly reconciliation of 2M transactions against the bank's settlement file finishes too late. How would you speed it up without risking correctness?",
-      testing: "Partitioning and parallelism, checkpointing so a failed run can resume, and how you prove the faster version produces identical results.",
-      anchor: "Résumé: batch job 5h → 40m at Routewise · JD: nightly settlement and reconciliation",
-      themes: ["Batch processing"],
-      rubric: [
-        "Proposes a concrete way to partition or parallelize the work",
-        "Protects correctness: checkpointing, safe re-runs, and verification",
-        "Considers how the bank file is loaded and matched"
-      ],
-      sampleAnswer: "First I'd profile where the time goes. At Routewise I sped up a batch job by partitioning the work and running it in parallel with Celery, so I'd probably do something similar, maybe split by merchant. I'd also make sure there are the right indexes on the transactions table.",
-      sampleReview: {
-        scores: [
-          { criterion: "Proposes a concrete way to partition or parallelize the work", score: 3, justification: "Profiling first and splitting by merchant is reasonable, but you don't check it against how the bank file is structured." },
-          { criterion: "Protects correctness: checkpointing, safe re-runs, and verification", score: 1, justification: "Nothing on checkpointing, re-runs, or proving the faster job gives the same results, which the question explicitly asks." },
-          { criterion: "Considers how the bank file is loaded and matched", score: 2, justification: "Indexes are mentioned, but not how the file is loaded or how rows are matched." }
-        ],
-        worked: [
-          "Starts with measuring rather than guessing",
-          "Uses relevant prior experience as evidence"
-        ],
-        missing: [
-          "How you'd verify the new job matches the old one, e.g. run both and diff the output",
-          "Checkpointing so a failure halfway doesn't restart all 2M rows",
-          "Bulk-loading the bank file into a staging table and matching with a set-based join"
-        ],
-        weakest_sentence: {
-          original: "I'd also make sure there are the right indexes on the transactions table.",
-          rewrite: "I'd COPY the bank file into a staging table, match it to our transactions with one set-based join on (settlement_date, processor_ref), and only loop over the rows that don't match."
+          original: "Then I'd decide whether to launch based on the overall impact.",
+          rewrite: "If net revenue per visitor is still up after refunds, I'd launch to [50%] while we fix the cause; if not, I'd hold the launch and test a version that keeps the faster flow but fixes [the unclear pricing step]."
         }
       }
     }

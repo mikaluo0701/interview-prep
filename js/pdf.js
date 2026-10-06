@@ -14,7 +14,8 @@ function loadPdfJs() {
 // Returns { text, pages }. text is empty for scanned, image-only PDFs.
 export async function extractPdfText(file) {
   const lib = await loadPdfJs();
-  const doc = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
+  // isEvalSupported: false keeps pdf.js from probing eval(), which the page's security policy blocks.
+  const doc = await lib.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false }).promise;
   const pages = [];
   for (let n = 1; n <= doc.numPages; n++) {
     const content = await (await doc.getPage(n)).getTextContent();

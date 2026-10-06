@@ -2,12 +2,15 @@
 // everyone else gets the same API backed by this browser's localStorage.
 import { SUPABASE_URL, SUPABASE_KEY } from "./config.js";
 import { readLocal, writeLocal } from "./util.js";
+import { emptyProgress, mergeProgress } from "./game.js";
 
-const SUPABASE_JS = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+// Pinned so a new upstream release can't change code running next to users' API keys.
+const SUPABASE_JS = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm";
 let supabase = null;     // stays null if the library can't load; the app then runs browser-only
 
 const LOCAL_STORIES = "interview-prep.stories";
 const LOCAL_SESSIONS = "interview-prep.sessions";
+const LOCAL_PROGRESS = "interview-prep.progress";
 const MAX_LOCAL_SESSIONS = 25;
 
 let currentUser = null;
@@ -71,11 +74,19 @@ const rowToStory = (r) => ({
 
 const sessionToRow = (s) => ({
   id: s.id, user_id: currentUser.id, role: s.role || "", job_description: s.jd, resume: s.resume, sample: Boolean(s.sample),
+  kind: s.kind || "interview", track: s.track || "", tier: s.tier || 1, completed: Boolean(s.completed),
   questions: s.qs, state: s.state.map(persistableState), created_at: s.createdAt, updated_at: new Date().toISOString()
 });
 const rowToSession = (r) => ({
   id: r.id, role: r.role, jd: r.job_description, resume: r.resume, sample: r.sample,
+  kind: r.kind || "interview", track: r.track || "", tier: r.tier || 1, completed: Boolean(r.completed),
   qs: r.questions || [], state: (r.state || []).map(restoredState), createdAt: r.created_at, updatedAt: r.updated_at
+});
+// The browser copy keeps the same fields as the app's session object.
+const sessionToLocal = (s) => ({
+  id: s.id, role: s.role, jd: s.jd, resume: s.resume, sample: Boolean(s.sample), kind: s.kind || "interview",
+  track: s.track || "", tier: s.tier || 1, completed: Boolean(s.completed),
+  qs: s.qs, state: s.state.map(persistableState), createdAt: s.createdAt, updatedAt: new Date().toISOString()
 });
 
 // Drop UI-only fields before saving.
@@ -137,10 +148,8 @@ export async function listSessions() {
 
 export async function saveSession(session) {
   if (!currentUser) {
-    const plain = { id: session.id, role: session.role, jd: session.jd, resume: session.resume, sample: session.sample,
-      qs: session.qs, state: session.state.map(persistableState), createdAt: session.createdAt, updatedAt: new Date().toISOString() };
     const all = readLocal(LOCAL_SESSIONS, []).filter((s) => s.id !== session.id);
-    all.unshift(plain);
+    all.unshift(sessionToLocal(session));
     writeLocal(LOCAL_SESSIONS, all.slice(0, MAX_LOCAL_SESSIONS));
     return;
   }
@@ -155,30 +164,47 @@ export async function deleteSession(id) {
   check(await supabase.from("ip_sessions").delete().eq("id", id));
 }
 
+// ---------- Progress (XP and skill averages) ----------
+
+export async function loadProgress() {
+  if (!currentUser) return { ...emptyProgress(), ...readLocal(LOCAL_PROGRESS, {}) };
+  const row = check(await supabase.from("ip_progress").select("xp, answers, skills").maybeSingle());
+  return row ? { xp: row.xp, answers: row.answers, skills: row.skills || {} } : emptyProgress();
+}
+
+export async function saveProgress(p) {
+  if (!currentUser) {
+    writeLocal(LOCAL_PROGRESS, { xp: p.xp, answers: p.answers, skills: p.skills });
+    return;
+  }
+  check(await supabase.from("ip_progress").upsert({
+    user_id: currentUser.id, xp: p.xp, answers: p.answers, skills: p.skills, updated_at: new Date().toISOString()
+  }));
+}
+
 // ---------- Moving browser data into an account ----------
 
 export function localCounts() {
   return {
     stories: readLocal(LOCAL_STORIES, []).filter(isStory).length,
-    sessions: readLocal(LOCAL_SESSIONS, []).length
+    sessions: readLocal(LOCAL_SESSIONS, []).length,
+    xp: readLocal(LOCAL_PROGRESS, {}).xp || 0
   };
 }
 
-// Copies this browser's stories and sessions into the signed-in account, then clears them locally.
+// Copies this browser's stories, sessions and XP into the signed-in account, then clears them locally.
 export async function moveLocalToAccount() {
   if (!currentUser) return;
   const stories = readLocal(LOCAL_STORIES, []).filter(isStory)
     .map((s) => ({ ...s, id: isUuid(s.id) ? s.id : crypto.randomUUID() }));
   const sessions = readLocal(LOCAL_SESSIONS, []);
   if (stories.length) check(await supabase.from("ip_stories").upsert(stories.map(storyToRow)));
-  if (sessions.length) check(await supabase.from("ip_sessions").upsert(sessions.map((s) => sessionToRow({ ...s, state: s.state }))));
+  if (sessions.length) check(await supabase.from("ip_sessions").upsert(sessions.map(sessionToRow)));
+  const local = readLocal(LOCAL_PROGRESS, null);
+  if (local?.answers || local?.xp) await saveProgress(mergeProgress(await loadProgress(), { ...emptyProgress(), ...local }));
   writeLocal(LOCAL_STORIES, null);
   writeLocal(LOCAL_SESSIONS, null);
-}
-
-export function forgetLocal() {
-  writeLocal(LOCAL_STORIES, null);
-  writeLocal(LOCAL_SESSIONS, null);
+  writeLocal(LOCAL_PROGRESS, null);
 }
 
 const isUuid = (s) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);

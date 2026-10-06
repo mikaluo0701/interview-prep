@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.anthropic.com https://bkmhdmbwrihbtwwvizvq.supabase.co https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; base-uri 'self'; form-action 'self'; object-src 'none'">
 <title>Interview Practice Coach</title>
-<meta name="description" content="Feed Nibbles a job description and your résumé, then survive its interview. Each answer is scored against a rubric, and your best stories go into a story bank.">
+<meta name="description" content="Gamified interview prep for MBA students. Feed Nibbles a job description and your résumé, answer out loud against the clock, earn XP, and drill your weakest skills.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -22,6 +23,13 @@
       <span class="brand-name">Interview Practice Coach</span>
     </div>
     <nav class="nav">
+      <div class="xp" id="xp" role="status">
+        <span class="xp-level" id="xp-level">Lv 1</span>
+        <span class="xp-main">
+          <span class="xp-title" id="xp-title">Pre-MBA</span>
+          <span class="xp-bar"><i id="xp-fill"></i></span>
+        </span>
+      </div>
       <button class="ghost small" id="to-history" type="button" hidden>History</button>
       <button class="ghost small" id="to-bank" type="button">Story bank</button>
       <button class="primary small" id="auth-btn" type="button" hidden>Sign in</button>
@@ -43,6 +51,7 @@
           <span class="plate" id="plate-jd">Job</span>
           <span class="plate" id="plate-resume">Résumé</span>
         </div>
+        <span class="rank" id="rank"></span>
       </div>
       <div class="bubble-col">
         <div class="bubble" id="bubble" aria-live="polite">
@@ -50,6 +59,13 @@
           <p data-bubble-text></p>
         </div>
         <div class="reaction" id="reaction" aria-live="polite"></div>
+        <div class="drill" id="drill" hidden>
+          <div class="drill-text">
+            <p class="drill-title">🎯 Weak-spot drill</p>
+            <p class="drill-sub" id="drill-sub"></p>
+          </div>
+          <button class="primary small" id="start-drill" type="button">Start drill</button>
+        </div>
       </div>
     </div>
 
@@ -132,8 +148,22 @@
             <span>Sent only to api.anthropic.com, straight from your browser. Without a key, Nibbles uses sample questions.</span>
             <label class="check"><input type="checkbox" id="remember">Remember on this device</label>
           </div>
+          <details class="key-help" id="key-help">
+            <summary>How do I get a key?</summary>
+            <ol>
+              <li>Sign up at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>.</li>
+              <li>Under <b>Billing</b>, add a few dollars of credit. $5 covers roughly ten full interviews.</li>
+              <li>Under <b>API keys</b>, create a key and paste it above.</li>
+            </ol>
+            <p>Typical cost: about $0.40–0.60 for a 10-question interview, and about $0.15 for a 3-question drill. You pay Anthropic directly; this site never sees your bill or stores your key.</p>
+          </details>
         </details>
         <div class="start-wrap">
+          <label class="track-pick">Track
+            <select id="track" aria-label="Interview track">
+              <option value="">Auto-detect</option>
+            </select>
+          </label>
           <button class="primary big" id="start" type="button" disabled>Start the interview 😈</button>
           <p class="start-hint" id="start-hint"></p>
           <button class="link" id="sample-food" type="button">No materials handy? Feed sample snacks</button>
@@ -145,7 +175,16 @@
     <div class="interview" id="interview" hidden>
       <div class="p-meta">
         <span id="q-meta"></span>
-        <span id="q-done"></span>
+        <span class="p-meta-right">
+          <span class="timer" id="timer" aria-live="off"></span>
+          <select id="timer-limit" aria-label="Answer time limit">
+            <option value="60">1 min</option>
+            <option value="120" selected>2 min</option>
+            <option value="180">3 min</option>
+            <option value="0">No timer</option>
+          </select>
+          <span id="q-done"></span>
+        </span>
       </div>
       <div class="segs" id="segs" aria-hidden="true"></div>
       <details id="hint">
@@ -156,9 +195,11 @@
         <label for="answer">Your answer</label>
         <span class="count" id="answer-count"></span>
       </div>
-      <textarea id="answer" placeholder="Type your answer as you'd say it in the interview…"></textarea>
+      <textarea id="answer" maxlength="8000" placeholder="Type your answer, or press Speak and answer out loud…"></textarea>
+      <p class="voice-note" id="voice-note" hidden>Voice uses your browser's speech service (in Chrome, audio is processed by Google).</p>
       <div class="p-foot">
         <div class="hint" style="margin:0">
+          <button class="ghost small mic" id="mic" type="button" hidden>🎤 Speak</button>
           <span><kbd>⌘</kbd> <kbd>Enter</kbd> to submit</span>
           <button class="link" id="use-sample-answer" type="button" hidden>Insert sample answer</button>
         </div>
@@ -173,6 +214,7 @@
     <div class="done" id="done" hidden>
       <p class="done-title" id="done-title">Interview over</p>
       <p class="done-text" id="done-text"></p>
+      <p class="done-xp" id="done-xp"></p>
       <div class="actions">
         <button class="primary" id="continue" type="button" hidden>Continue the interview</button>
         <button class="ghost" id="see-reviews" type="button">See my reviews</button>
@@ -233,10 +275,18 @@
   </section>
 
   <footer class="foot">
-    <span>Your API key stays in this browser. Signed-in stories and sessions are private to your account.</span>
+    <span>Your API key stays in this browser. Signed-in progress, stories and sessions are private to your account.</span>
     <span>Questions and reviews by Claude Opus 5.5 · Design inspired by Meta's Muse</span>
   </footer>
 </main>
+
+<div class="levelup" id="levelup" role="status" aria-live="polite" hidden>
+  <div class="levelup-card">
+    <span class="levelup-kicker">Level up!</span>
+    <b id="levelup-title"></b>
+    <span id="levelup-sub"></span>
+  </div>
+</div>
 
 <dialog class="auth" id="auth-dialog" data-mode="signin" aria-labelledby="auth-title">
   <form id="auth-form">

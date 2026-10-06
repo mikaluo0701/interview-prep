@@ -1,16 +1,21 @@
-// Main flow: feed Nibbles a job + résumé, it turns evil and interviews you, then reviews come in.
+// Main flow: feed Nibbles a job + résumé, it turns evil and interviews you, reviews come in,
+// and every graded answer earns XP toward the next level.
 import { app, newQuestionState, nextIndex, countBy } from "./state.js";
 import * as store from "./store.js";
-import { generateQuestions, reviewAnswer, fetchJobFromUrl, transcribePdf } from "./claude.js";
+import { generateQuestions, generateDrill, reviewAnswer, fetchJobFromUrl, transcribePdf } from "./claude.js";
 import { extractPdfText, fileToBase64, MAX_PDF_BYTES } from "./pdf.js";
 import { createMonster } from "./monster.js";
 import { initReview, renderReview, renderReviewItem, renderReviewSummary } from "./review.js";
-import { initBank, renderBank } from "./bank.js";
+import { initBank, renderBank, storyGaps } from "./bank.js";
 import { initHistory, renderHistory } from "./history.js";
+import { speechSupported, createDictation, createTimer } from "./voice.js";
+import { levelInfo, answerXp, updateSkills, weakestSkills, emptyProgress, COMPLETION_XP, DRILL_UNLOCK_ANSWERS } from "./game.js";
+import { TRACKS, MAX_DOC_CHARS } from "./config.js";
 import { SAMPLE_JD, SAMPLE_RESUME, SAMPLE_OUTPUT } from "./sample.js";
-import { $, escapeHtml, sleep, uuid, wordCount, pick, debounce, roleLabel, catLabel, avgScore, reducedMotion } from "./util.js";
+import { $, escapeHtml, sleep, uuid, wordCount, pick, debounce, roleLabel, catLabel, avgScore, reducedMotion, fmtTime } from "./util.js";
 
 const KEY_STORAGE = "interview-prep.apiKey";
+const TIMER_STORAGE = "interview-prep.timer";
 const stage = $("stage");
 const monster = createMonster($("monster"), $("bubble"));
 
@@ -20,16 +25,19 @@ const food = {
 };
 
 const LINES = {
-  intro: "Hi, I'm Nibbles! 👋 Feed me a job description and your résumé, and I'll turn them into interview practice.",
+  intro: "Hi, I'm Nibbles! 👋 Feed me a job description and your résumé, and I'll turn them into MBA interview practice. Every answer earns XP.",
   hungryAgain: "Hungry again! 🍽 What are we practicing for next?",
   bothFed: "Yum, all fed! 🍽 Press “Start the interview” when you're ready… I promise I'm nice. 😇",
   transform: "MWAHAHA! 😈 You fed me well. Now… I ask the questions.",
+  drillTransform: "Your weak spots look DELICIOUS. 😈 Three questions. No mercy.",
   sharpening: "Sharpening my questions… 🔪",
   finished: "Phew… you survived! 💙 Your reviews are below. Save the good ones to your story bank.",
   backForMore: "Back for more? Excellent. 😈",
+  needKey: "To interview you on YOUR materials I need an API key 🔑 (about $0.50 an interview). Add one below, or try my sample interview first.",
   intros: ["Answer carefully.", "Don't bore me.", "Let's see you squirm.", "Take your time. I'm patient… for now.", "This one's tasty.", "No pressure. Heh."],
   submitted: ["Noted. I'll be judging that.", "Hmm. Interesting choice of words.", "Moving on… for now.", "I'll remember that one.", "Writing that down. In red ink."],
   skipped: ["Running away? I'll remember that.", "Skipping? Coward. Fine.", "Saving that one for later, are we?"],
+  timeUp: ["Time's up! ⏰ Wrap it up.", "Tick tock. ⏰ Interviewers stop listening after two minutes.", "Over time! ⏰ Land the plane."],
   high: ["Hmph. That was… actually good.", "Grr. I couldn't find much wrong with that.", "Lucky answer. Don't get cocky."],
   mid: ["Passable. Barely.", "Not terrible. Not great.", "I've heard worse. I've heard better."],
   low: ["Weak! Read my notes below.", "Was that an answer or a shrug?", "Ouch. My notes are waiting for you."]
@@ -51,6 +59,7 @@ function setMode(mode) {
   $("feed").hidden = mode !== "feed";
   $("interview").hidden = mode !== "interview";
   $("done").hidden = mode !== "done";
+  if (mode !== "interview") stopAnswering();
 }
 
 function setBusy(btn, label) {
@@ -64,6 +73,7 @@ const getKey = () => $("key").value.trim();
 function updateKeyStatus() {
   $("key-status").textContent = getKey() ? "Key added" : "Sample mode";
   $("key-panel").classList.toggle("has-key", Boolean(getKey()));
+  renderXp();
 }
 
 function saveKeyPreference() {
@@ -71,6 +81,12 @@ function saveKeyPreference() {
     if ($("remember").checked && getKey()) localStorage.setItem(KEY_STORAGE, getKey());
     else localStorage.removeItem(KEY_STORAGE);
   } catch {}
+}
+
+function openKeyHelp() {
+  $("key-panel").open = true;
+  $("key-help").open = true;
+  $("key-panel").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 // Throws a little emoji "food" from a button into Nibbles' mouth.
@@ -95,6 +111,91 @@ async function flyToMonster(fromEl, emoji) {
     { duration: 700, easing: "cubic-bezier(.45,0,.55,1)" }
   ).finished.catch(() => {});
   el.remove();
+}
+
+// ---------- XP, levels, drills ----------
+
+const currentLevel = () => levelInfo(app.progress.xp);
+
+const saveProgressSoon = debounce(async () => {
+  try {
+    await store.saveProgress(app.progress);
+  } catch (err) {
+    showError(`Couldn't save your XP: ${err.message}`);
+  }
+}, 800);
+
+function renderXp() {
+  const info = currentLevel();
+  $("xp-level").textContent = `Lv ${info.level}`;
+  $("xp-title").textContent = info.title;
+  $("xp-fill").style.width = `${Math.min(100, (info.into / info.span) * 100)}%`;
+  $("xp").title = `${info.xp} XP · ${info.toNext} XP to Level ${info.level + 1} · Nibbles is your ${info.tier.name}` +
+    (getKey() ? "" : " · Add your API key to start earning XP");
+  monster.setTier(info.tier.tier);
+  if (stage.dataset.mode === "feed") $("rank").textContent = `😈 ${info.tier.name} Nibbles`;
+}
+
+function addXp(amount) {
+  if (!amount) return;
+  const before = currentLevel();
+  app.progress.xp += amount;
+  const after = currentLevel();
+  renderXp();
+  const badge = $("xp");
+  badge.classList.remove("bump");
+  void badge.offsetWidth;
+  badge.classList.add("bump");
+  saveProgressSoon();
+  if (after.level > before.level) levelUp(after, after.tier.tier > before.tier.tier);
+}
+
+let levelupTimer;
+function levelUp(info, promoted) {
+  $("levelup-title").textContent = `Level ${info.level}: ${info.title}`;
+  $("levelup-sub").textContent = promoted
+    ? `Nibbles got promoted to ${info.tier.name}. Its questions just got sharper. 😈`
+    : `${info.toNext} XP to Level ${info.level + 1}.`;
+  $("levelup").hidden = false;
+  monster.celebrate();
+  confetti();
+  clearTimeout(levelupTimer);
+  levelupTimer = setTimeout(() => ($("levelup").hidden = true), 3800);
+}
+
+function confetti() {
+  if (reducedMotion()) return;
+  const colors = ["#0457cb", "#ff3d6e", "#f0c060", "#6fd09c", "#a9b8ec"];
+  for (let k = 0; k < 40; k++) {
+    const c = document.createElement("span");
+    c.className = "confetti";
+    c.style.left = `${Math.random() * 100}vw`;
+    c.style.background = colors[k % colors.length];
+    c.style.animationDuration = `${1.6 + Math.random() * 1.6}s`;
+    c.style.animationDelay = `${Math.random() * 0.4}s`;
+    document.body.appendChild(c);
+    c.addEventListener("animationend", () => c.remove(), { once: true });
+  }
+}
+
+function renderDrill() {
+  const p = app.progress;
+  const weak = weakestSkills(p.skills);
+  const locked = p.answers < DRILL_UNLOCK_ANSWERS || weak.length < 2;
+  $("drill").hidden = false;
+  $("drill").classList.toggle("locked", locked);
+  $("start-drill").hidden = locked;
+  $("drill-sub").textContent = locked
+    ? `Answer ${DRILL_UNLOCK_ANSWERS} questions with your API key to unlock drills on your weakest skills (${Math.min(p.answers, DRILL_UNLOCK_ANSWERS)}/${DRILL_UNLOCK_ANSWERS}).`
+    : `Weakest: ${weak.map((w) => `${w.label} ${w.value.toFixed(1)}`).join(" · ")}. 3 questions to work on them.`;
+}
+
+// Drills are tailored to the materials on the table, or the latest real session.
+function latestMaterials() {
+  const fedOwn = food.jd.fed && food.resume.fed && food.jd.text !== SAMPLE_JD;
+  if (fedOwn) return { jd: food.jd.text, resume: food.resume.text };
+  const last = app.sessions.find((s) => !s.sample && s.jd);
+  return last ? { jd: last.jd, resume: last.resume } : { jd: "", resume: "" };
 }
 
 // ---------- Feeding ----------
@@ -138,6 +239,7 @@ async function eat(kind, fromEl) {
 }
 
 const complain = (text) => monster.say(text, { face: "shocked", settle: "normal" });
+const tooLong = (text) => text.length > MAX_DOC_CHARS;
 
 async function feedJd() {
   const btn = $("feed-jd");
@@ -146,7 +248,7 @@ async function feedJd() {
     const url = $("jd-url").value.trim();
     if (!/^https?:\/\/[^\s.]+\.\S+/i.test(url)) return complain("That doesn't look like a link. It should start with https://");
     if (!getKey()) {
-      $("key-panel").open = true;
+      openKeyHelp();
       return complain("I can only read links with an API key 🔑. Add one below, or paste the job text instead.");
     }
     setBusy(btn, "Reading the page…");
@@ -163,6 +265,7 @@ async function feedJd() {
     text = $("jd").value.trim();
     if (wordCount(text) < 15) return complain("That's barely a crumb! Paste the full job description, at least a few sentences.");
   }
+  if (tooLong(text)) return complain("That's a feast! Keep the job description under 60,000 characters.");
   food.jd.text = text;
   await eat("jd", btn);
 }
@@ -176,6 +279,7 @@ async function feedResume(fromEl = $("feed-resume")) {
     text = $("resume").value.trim();
     if (wordCount(text) < 30) return complain("That résumé is a bit thin! Paste the whole thing.");
   }
+  if (tooLong(text)) return complain("That résumé is a feast! Keep it under 60,000 characters.");
   food.resume.text = text;
   await eat("resume", fromEl);
 }
@@ -200,7 +304,7 @@ async function readPdf(file) {
     let { text, pages } = await extractPdfText(file);
     if (wordCount(text) < 30) {
       if (!getKey()) {
-        $("key-panel").open = true;
+        openKeyHelp();
         return fail("This PDF looks like a scanned image, so there's no text to read. Add an API key and Claude will read it, or paste the text instead.");
       }
       status.innerHTML = `<span class="spinner"></span>Scanned PDF. Asking Claude to read it…`;
@@ -236,52 +340,106 @@ function unfeed(kind) {
   monster.say(`Changed your mind? Okay, feed me a different ${kind === "jd" ? "job description" : "résumé"}.`, { face: "normal" });
 }
 
-// ---------- Interview ----------
+// ---------- Answering: timer and voice ----------
+
+let answerMode = "typed";
+let timeUpShown = false;
+
+const timer = createTimer((elapsed, limit) => {
+  const el = $("timer");
+  el.textContent = limit ? `⏱ ${fmtTime(elapsed)} / ${fmtTime(limit)}` : `⏱ ${fmtTime(elapsed)}`;
+  el.classList.toggle("warn", Boolean(limit) && elapsed >= limit - 15 && elapsed < limit);
+  el.classList.toggle("over", Boolean(limit) && elapsed >= limit);
+  if (limit && elapsed >= limit && !timeUpShown && stage.dataset.mode === "interview") {
+    timeUpShown = true;
+    showReaction(pick(LINES.timeUp), "s-low", "smug");
+  }
+});
+
+const dictation = createDictation($("answer"), {
+  onChange: (on) => {
+    $("mic").classList.toggle("listening", on);
+    $("mic").textContent = on ? "● Listening… tap to stop" : "🎤 Speak";
+    if (on) answerMode = "spoken";
+  },
+  onError: (msg) => showReaction(msg, "s-low")
+});
+
+function stopAnswering() {
+  dictation.stop();
+  const seconds = timer.stop();
+  $("timer").textContent = "";
+  return seconds;
+}
+
+// ---------- Interview and drill runs ----------
 
 let busy = false;
 
-async function startInterview() {
-  if (!food.jd.fed || !food.resume.fed || busy) return;
+async function startRun(kind, { forceSample = false } = {}) {
+  if (busy) return;
+  const key = getKey();
+  if (kind === "interview" && (!food.jd.fed || !food.resume.fed)) return;
+  if (kind === "drill" && !key) {
+    openKeyHelp();
+    return complain("Drills need your API key 🔑 so I can grade your real answers.");
+  }
+  const ownFood = food.jd.text !== SAMPLE_JD || food.resume.text !== SAMPLE_RESUME;
+  if (kind === "interview" && !key && ownFood && !forceSample) {
+    openKeyHelp();
+    showNotice("warn", `<b>Add your API key to practice on your own materials.</b> Without one, Nibbles can only run its sample interview. <button class="link" id="sample-anyway" type="button">Try the sample interview instead</button>`);
+    $("sample-anyway").addEventListener("click", () => startRun("interview", { forceSample: true }), { once: true });
+    return complain(LINES.needKey);
+  }
+
   busy = true;
   hideNotice();
   saveKeyPreference();
-  const key = getKey();
+  const tier = currentLevel().tier;
   setMode("generating");
+  $("rank").textContent = `😈 ${tier.name} Nibbles`;
   $("stage").scrollIntoView({ behavior: "smooth", block: "start" });
   await monster.transform("evil");
-  await monster.say(LINES.transform, { face: "talk", settle: "normal" });
+  await monster.say(kind === "drill" ? LINES.drillTransform : LINES.transform, { face: "talk", settle: "normal" });
   await sleep(900);
 
-  let output;
-  const sample = !key;
-  if (sample) {
-    monster.say(LINES.sharpening, { face: "smug" });
-    await sleep(900);
-    output = SAMPLE_OUTPUT;
-    const ownFood = food.jd.text !== SAMPLE_JD || food.resume.text !== SAMPLE_RESUME;
-    showNotice("warn", ownFood
-      ? "<b>Sample mode.</b> No API key, so Nibbles is using its sample questions for a Senior Backend Engineer role, not your job description. Add a key to practice on your own materials and get your answers reviewed."
-      : "<b>Sample mode.</b> These are sample questions for the sample job. Each one has a sample answer you can insert and a pre-written review. Add an API key to practice on your own materials.");
-  } else {
-    monster.say(LINES.sharpening, { face: "smug" });
-    try {
-      output = await generateQuestions(key, food.jd.text, food.resume.text);
-    } catch (err) {
-      busy = false;
-      setMode("feed");
-      await monster.transform("cute");
-      complain(`Oops, my brain glitched: ${err.message}`);
-      return;
+  const sample = kind === "interview" && !key;
+  let output, jd, resume, role;
+  monster.say(LINES.sharpening, { face: "smug" });
+  try {
+    if (sample) {
+      await sleep(900);
+      output = SAMPLE_OUTPUT;
+      [jd, resume] = [SAMPLE_JD, SAMPLE_RESUME];
+      role = roleLabel(jd);
+      showNotice("warn", "<b>Sample mode.</b> These are sample questions for a sample Product Manager role. Each one has a sample answer you can insert and a pre-written review. Sample answers don't earn XP: add your API key to practice on your own materials.");
+    } else if (kind === "drill") {
+      ({ jd, resume } = latestMaterials());
+      const weak = weakestSkills(app.progress.skills);
+      output = await generateDrill(key, { jd, resume, weakSkills: weak, gapThemes: storyGaps().slice(0, 2), interviewer: tier.name });
+      role = `Weak-spot drill · ${weak.map((w) => w.label).join(" & ")}`;
+    } else {
+      [jd, resume] = [food.jd.text, food.resume.text];
+      output = await generateQuestions(key, { jd, resume, track: $("track").value, interviewer: tier.name });
+      role = roleLabel(jd);
     }
+  } catch (err) {
+    busy = false;
+    setMode("feed");
+    await monster.transform("cute");
+    renderXp();
+    complain(`Oops, my brain glitched: ${err.message}`);
+    return;
   }
 
-  const jd = sample ? SAMPLE_JD : food.jd.text;
-  const resume = sample ? SAMPLE_RESUME : food.resume.text;
   const qs = [
     ...(output.behavioral || []).map((q) => ({ ...q, category: "behavioral" })),
     ...(output.technical || []).map((q) => ({ ...q, category: "technical" }))
   ];
-  app.session = { id: uuid(), createdAt: new Date().toISOString(), role: roleLabel(jd), jd, resume, sample, qs, state: qs.map(newQuestionState) };
+  app.session = {
+    id: uuid(), createdAt: new Date().toISOString(), kind, track: output.track || "", tier: tier.tier,
+    role, jd, resume, sample, completed: false, qs, state: qs.map(newQuestionState)
+  };
   await persistNow();
   renderReview();
   renderBank();
@@ -307,6 +465,10 @@ function askNext() {
   $("hint").open = false;
   $("answer").value = "";
   $("use-sample-answer").hidden = !s.sample;
+  answerMode = "typed";
+  timeUpShown = false;
+  dictation.stop();
+  timer.start(Number($("timer-limit").value));
   syncAnswer();
   monster.say(q.question, { sub: `Question ${i + 1} of ${n} · ${pick(LINES.intros)}`, face: "talk", settle: "normal" });
   $("answer").focus({ preventScroll: true });
@@ -324,9 +486,13 @@ async function submitAnswer() {
   const text = $("answer").value.trim();
   if (busy || !text || i == null) return;
   busy = true;
+  const limit = timer.limit;
+  const seconds = stopAnswering();
   const st = app.session.state[i];
-  st.answer = text;
-  st.status = "grading";
+  Object.assign(st, {
+    answer: text, status: "grading", seconds: Math.round(seconds), limit,
+    onTime: Boolean(limit) && seconds <= limit, inputMode: answerMode
+  });
   syncAnswer();
   persist();
   renderReviewItem(i);
@@ -342,6 +508,7 @@ async function skipQuestion() {
   const i = app.current;
   if (busy || i == null) return;
   busy = true;
+  stopAnswering();
   app.session.state[i].status = "skipped";
   syncAnswer();
   persist();
@@ -365,11 +532,19 @@ async function grade(i) {
       review = q.sampleReview;
       st.reviewedSample = st.answer.trim() !== q.sampleAnswer.trim();
     } else {
-      review = await reviewAnswer(getKey(), s, q, st.answer);
+      review = await reviewAnswer(getKey(), s, q, st);
     }
     if (app.session !== s) return;
     st.review = review;
     st.status = "reviewed";
+    // XP and skill tracking: real answers only, once per answer (a retried review doesn't pay twice).
+    if (!s.sample && st.xp == null) {
+      st.xp = answerXp(avgScore(review), s.tier || 1, st.onTime);
+      app.progress.answers += 1;
+      app.progress.skills = updateSkills(app.progress.skills, review.skills);
+      addXp(st.xp);
+      renderDrill();
+    }
   } catch (err) {
     if (app.session !== s) return;
     st.error = err.message;
@@ -378,24 +553,14 @@ async function grade(i) {
   persist();
   renderReviewItem(i);
   renderReviewSummary();
+  if (stage.dataset.mode === "done") renderDone();
   react(i);
 }
 
-// Nibbles' running commentary as reviews land, without interrupting the current question.
+// Nibbles' running commentary, shown under the bubble so it never interrupts the current question.
 let reactionTimer;
-function react(i) {
-  if (stage.dataset.mode !== "interview") return;
-  const st = app.session.state[i];
+function showReaction(line, cls, face) {
   const el = $("reaction");
-  let line, cls, face;
-  if (st.status === "error") {
-    line = `My review of Q${i + 1} failed. Retry it in the list below.`;
-    cls = "s-low";
-  } else {
-    const avg = avgScore(st.review);
-    [line, cls, face] = avg >= 4 ? [pick(LINES.high), "s-good", "shocked"] : avg >= 3 ? [pick(LINES.mid), "s-mid", "smug"] : [pick(LINES.low), "s-low", "smug"];
-    line = `Q${i + 1} · ${avg.toFixed(1)}/5 · ${line}`;
-  }
   el.className = `reaction show ${cls}`;
   el.textContent = line;
   if (face) {
@@ -406,12 +571,30 @@ function react(i) {
   reactionTimer = setTimeout(() => el.classList.remove("show"), 5000);
 }
 
+function react(i) {
+  if (stage.dataset.mode !== "interview") return;
+  const s = app.session, st = s.state[i];
+  if (st.status === "error") return showReaction(`My review of Q${i + 1} failed. Retry it in the list below.`, "s-low");
+  const avg = avgScore(st.review);
+  const [line, cls, face] = avg >= 4 ? [pick(LINES.high), "s-good", "shocked"] : avg >= 3 ? [pick(LINES.mid), "s-mid", "smug"] : [pick(LINES.low), "s-low", "smug"];
+  const xp = s.sample ? " · sample, no XP" : st.xp ? ` · +${st.xp} XP` : "";
+  showReaction(`Q${i + 1} · ${avg.toFixed(1)}/5${xp} · ${line}`, cls, face);
+}
+
 async function finish() {
   app.current = null;
+  const s = app.session;
+  // Completion bonus for answering every question without skipping.
+  if (!s.sample && !s.completed && countBy(s, "skipped") === 0 && countBy(s, "upcoming") === 0) {
+    s.completed = true;
+    addXp(COMPLETION_XP[s.kind] ?? COMPLETION_XP.interview);
+    persist();
+  }
   setMode("done");
   renderDone();
   $("reaction").classList.remove("show");
   if (monster.form === "evil") await monster.transform("cute");
+  renderXp();
   monster.say(LINES.finished, { face: "happy" });
 }
 
@@ -420,12 +603,20 @@ function renderDone() {
   const n = s.qs.length;
   const left = countBy(s, "upcoming") + countBy(s, "skipped");
   const answered = n - left;
-  $("done-title").textContent = left ? "Taking a break?" : "Interview over";
+  $("done-title").textContent = left ? "Taking a break?" : s.kind === "drill" ? "Drill complete" : "Interview over";
   $("done-text").textContent = left
     ? `You've answered ${answered} of ${n}. ${left} question${left === 1 ? " is" : "s are"} still waiting.`
     : `You answered all ${n} questions. Your reviews are below.`;
   $("continue").hidden = !left;
-  $("continue").textContent = `Continue the interview (${left} left)`;
+  $("continue").textContent = `Continue (${left} left)`;
+  if (s.sample) {
+    $("done-xp").textContent = "Sample answers don't earn XP. Add your API key to start earning XP.";
+  } else {
+    const bonus = s.completed ? COMPLETION_XP[s.kind] ?? COMPLETION_XP.interview : 0;
+    const earned = s.state.reduce((a, x) => a + (x.xp || 0), 0) + bonus;
+    const info = currentLevel();
+    $("done-xp").textContent = `+${earned} XP this session${bonus ? ` (including +${bonus} for finishing)` : ""} · Level ${info.level} ${info.title} · ${info.toNext} XP to Level ${info.level + 1}`;
+  }
 }
 
 async function continueInterview() {
@@ -434,6 +625,7 @@ async function continueInterview() {
   persist();
   renderReview();
   setMode("interview");
+  $("rank").textContent = `😈 ${currentLevel().tier.name} Nibbles`;
   await monster.transform("evil");
   await monster.say(LINES.backForMore, { face: "talk", settle: "normal" });
   await sleep(500);
@@ -446,6 +638,7 @@ function feedNewFood() {
   food.resume.fed = false;
   renderFood();
   setMode("feed");
+  renderXp();
   monster.say(LINES.hungryAgain, { face: "happy" });
   $("stage").scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -454,10 +647,12 @@ async function openSession(s) {
   if (busy) return;
   hideNotice();
   app.session = s;
-  food.jd = { mode: "text", text: s.jd, fed: true };
-  food.resume = { mode: "text", text: s.resume, fed: true, pdf: null };
-  $("jd").value = s.jd;
-  $("resume").value = s.resume;
+  if (s.kind !== "drill") {
+    food.jd = { mode: "text", text: s.jd, fed: true };
+    food.resume = { mode: "text", text: s.resume, fed: true, pdf: null };
+    $("jd").value = s.jd;
+    $("resume").value = s.resume;
+  }
   renderFood();
   renderReview();
   renderBank();
@@ -465,7 +660,7 @@ async function openSession(s) {
   setMode("done");
   renderDone();
   if (monster.form === "evil") await monster.transform("cute");
-  monster.say(`Welcome back! Here's your session for ${s.role || "that role"}. 📚`, { face: "happy" });
+  monster.say(`Welcome back! Here's your ${s.kind === "drill" ? "drill" : "session"} for ${s.role || "that role"}. 📚`, { face: "happy" });
   $("stage").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -494,11 +689,19 @@ async function loadData() {
     app.sessions = [];
     showError(`Couldn't load your saved data: ${err.message}`);
   }
+  try {
+    app.progress = await store.loadProgress();
+  } catch (err) {
+    app.progress = emptyProgress();
+    showError(`Couldn't load your XP: ${err.message}`);
+  }
   // Keep the on-screen session object so in-flight reviews still land in it.
   if (app.session) {
     const at = app.sessions.findIndex((x) => x.id === app.session.id);
     if (at !== -1) app.sessions[at] = app.session;
   }
+  renderXp();
+  renderDrill();
   renderBank();
   renderHistory();
   renderReview();
@@ -518,12 +721,16 @@ function renderAuth() {
 }
 
 function renderMoveBanner() {
-  const { stories, sessions } = store.localCounts();
-  const show = Boolean(app.user) && !moveDismissed && (stories || sessions);
+  const { stories, sessions, xp } = store.localCounts();
+  const show = Boolean(app.user) && !moveDismissed && Boolean(stories || sessions || xp);
   $("move-banner").hidden = !show;
   if (!show) return;
-  const parts = [stories && `${stories} stor${stories === 1 ? "y" : "ies"}`, sessions && `${sessions} practice session${sessions === 1 ? "" : "s"}`].filter(Boolean);
-  $("move-text").textContent = `This browser has ${parts.join(" and ")} saved from before you signed in. Move them into your account?`;
+  const parts = [
+    stories && `${stories} stor${stories === 1 ? "y" : "ies"}`,
+    sessions && `${sessions} practice session${sessions === 1 ? "" : "s"}`,
+    xp && `${xp} XP`
+  ].filter(Boolean);
+  $("move-text").textContent = `This browser has ${parts.join(", ")} saved from before you signed in. Move them into your account?`;
 }
 
 async function onAuthChange(user) {
@@ -631,7 +838,7 @@ function wire() {
     });
   }
 
-  // API key
+  // API key and track
   $("key").addEventListener("input", updateKeyStatus);
   $("key").addEventListener("change", saveKeyPreference);
   $("remember").addEventListener("change", saveKeyPreference);
@@ -640,9 +847,11 @@ function wire() {
     $("key").type = hidden ? "text" : "password";
     $("toggle-key").textContent = hidden ? "Hide" : "Show";
   });
+  for (const t of TRACKS) $("track").add(new Option(t.label, t.key));
 
   // Interview
-  $("start").addEventListener("click", startInterview);
+  $("start").addEventListener("click", () => startRun("interview"));
+  $("start-drill").addEventListener("click", () => startRun("drill"));
   $("answer").addEventListener("input", syncAnswer);
   $("answer").addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); submitAnswer(); }
@@ -657,6 +866,20 @@ function wire() {
   $("continue").addEventListener("click", continueInterview);
   $("new-food").addEventListener("click", feedNewFood);
   $("see-reviews").addEventListener("click", () => $("review").scrollIntoView({ behavior: "smooth", block: "start" }));
+
+  // Timer and voice
+  $("timer-limit").addEventListener("change", () => {
+    try { localStorage.setItem(TIMER_STORAGE, $("timer-limit").value); } catch {}
+    timer.setLimit(Number($("timer-limit").value));
+  });
+  if (speechSupported()) {
+    $("mic").hidden = false;
+    $("voice-note").hidden = false;
+    $("mic").addEventListener("click", () => {
+      dictation.toggle();
+      $("answer").focus({ preventScroll: true });
+    });
+  }
 
   // Poking Nibbles
   let lastPoke = 0;
@@ -710,10 +933,13 @@ async function init() {
   try {
     const saved = localStorage.getItem(KEY_STORAGE);
     if (saved) { $("key").value = saved; $("remember").checked = true; }
+    const limit = localStorage.getItem(TIMER_STORAGE);
+    if (limit && [...$("timer-limit").options].some((o) => o.value === limit)) $("timer-limit").value = limit;
   } catch {}
   updateKeyStatus();
   setMode("feed");
   renderFood();
+  renderDrill();
   monster.say(LINES.intro, { face: "normal" });
   app.user = await store.initAuth(onAuthChange);
   renderAuth();

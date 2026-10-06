@@ -31,6 +31,11 @@ const SVG = `
       <stop offset="0.6" stop-color="#7a0c35"/>
       <stop offset="1" stop-color="#2b0515"/>
     </linearGradient>
+    <linearGradient id="nb-horn-gold" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#ffe7a0"/>
+      <stop offset="0.55" stop-color="#e0a92a"/>
+      <stop offset="1" stop-color="#8a5d00"/>
+    </linearGradient>
     <filter id="nb-glow" x="-50%" y="-50%" width="200%" height="200%">
       <feGaussianBlur stdDeviation="2.4" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
@@ -48,13 +53,25 @@ const SVG = `
   <ellipse class="evil-only m-aura" cx="130" cy="148" rx="122" ry="112" fill="url(#nb-aura)"/>
 
   <g class="m-bob">
-    <g class="evil-only m-horns" stroke="#ff9cbb" stroke-width="2" stroke-linejoin="round">
-      <path d="M102 72 C86 52 72 32 62 8 C88 22 106 42 118 66 Z" fill="url(#nb-horn)"/>
-      <path d="M158 72 C174 52 188 32 198 8 C172 22 154 42 142 66 Z" fill="url(#nb-horn)"/>
+    <g class="acc" data-max-tier="4">
+      <g class="evil-only m-horns" stroke="#ff9cbb" stroke-width="2" stroke-linejoin="round">
+        <path d="M102 72 C86 52 72 32 62 8 C88 22 106 42 118 66 Z" fill="url(#nb-horn)"/>
+        <path d="M158 72 C174 52 188 32 198 8 C172 22 154 42 142 66 Z" fill="url(#nb-horn)"/>
+      </g>
+      <g class="cute-only">
+        <ellipse cx="101" cy="62" rx="10" ry="14" transform="rotate(-22 101 62)" fill="url(#nb-body-cute)"/>
+        <ellipse cx="159" cy="62" rx="10" ry="14" transform="rotate(22 159 62)" fill="url(#nb-body-cute)"/>
+      </g>
     </g>
-    <g class="cute-only">
-      <ellipse cx="101" cy="62" rx="10" ry="14" transform="rotate(-22 101 62)" fill="url(#nb-body-cute)"/>
-      <ellipse cx="159" cy="62" rx="10" ry="14" transform="rotate(22 159 62)" fill="url(#nb-body-cute)"/>
+    <g class="acc" data-min-tier="5">
+      <g class="evil-only m-horns" stroke="#fff3c4" stroke-width="2" stroke-linejoin="round">
+        <path d="M102 72 C86 52 72 32 62 8 C88 22 106 42 118 66 Z" fill="url(#nb-horn-gold)"/>
+        <path d="M158 72 C174 52 188 32 198 8 C172 22 154 42 142 66 Z" fill="url(#nb-horn-gold)"/>
+      </g>
+      <g class="cute-only">
+        <ellipse cx="101" cy="62" rx="10" ry="14" transform="rotate(-22 101 62)" fill="url(#nb-horn-gold)"/>
+        <ellipse cx="159" cy="62" rx="10" ry="14" transform="rotate(22 159 62)" fill="url(#nb-horn-gold)"/>
+      </g>
     </g>
 
     <use href="#nb-shape" fill="url(#nb-body-cute)"/>
@@ -108,6 +125,27 @@ const SVG = `
         <path d="M144 170 l3 8.5 l4.5 -7.5 z" fill="#fff" stroke="#2a0612" stroke-width="1.4" stroke-linejoin="round"/>
       </g>
     </g>
+
+    <!-- Rank outfits: Associate tie, VP glasses, Partner blazer, Managing Partner monocle. -->
+    <g class="acc" data-min-tier="4">
+      <path d="M68 166 Q86 186 106 194 L99 227 Q76 221 60 199 Z" fill="#26324d"/>
+      <path d="M192 166 Q174 186 154 194 L161 227 Q184 221 200 199 Z" fill="#26324d"/>
+      <path d="M167 203 l12 -8 l3 11 z" fill="#ffffff"/>
+    </g>
+    <g class="acc" data-min-tier="2">
+      <path d="M123 196 L137 196 L134 204 L126 204 Z" fill="#0b3b8c"/>
+      <path d="M126 204 L134 204 L138 220 L130 227 L122 220 Z" fill="#1f5fd1"/>
+      <path d="M124.5 211 L136.5 208 M123.5 218 L137.5 215" stroke="#9cc0ff" stroke-width="1.6"/>
+    </g>
+    <g class="acc" data-min-tier="3" data-max-tier="4" fill="none" stroke="#1d1f2e" stroke-width="3.5">
+      <circle cx="104" cy="139" r="19" fill="rgba(255,255,255,0.14)"/>
+      <circle cx="156" cy="139" r="19" fill="rgba(255,255,255,0.14)"/>
+      <path d="M123 136 q7 -6 14 0"/>
+    </g>
+    <g class="acc" data-min-tier="5">
+      <circle cx="156" cy="139" r="19" fill="rgba(255,255,255,0.18)" stroke="#d9a520" stroke-width="4"/>
+      <path d="M172 150 Q184 178 171 202" fill="none" stroke="#d9a520" stroke-width="2"/>
+    </g>
   </g>
 </svg>`;
 
@@ -130,6 +168,7 @@ export function createMonster(host, bubble) {
   host.innerHTML = SVG;
   const svg = host.querySelector("svg");
   const parts = [...svg.querySelectorAll(".part")];
+  const accessories = [...svg.querySelectorAll(".acc")];
   const textEl = bubble.querySelector("[data-bubble-text]");
   const subEl = bubble.querySelector("[data-bubble-sub]");
   let form = "cute";
@@ -196,6 +235,22 @@ export function createMonster(host, bubble) {
     if (token === sayToken && settle) setFace(settle);
   }
 
+  // Rank 1–5 (Analyst → Managing Partner): outfit layers and bigger horns.
+  function setTier(tier) {
+    host.dataset.tier = tier;
+    host.style.setProperty("--horn-scale", [0.85, 1, 1.1, 1.2, 1.28][tier - 1] ?? 1);
+    accessories.forEach((el) => el.classList.toggle("acc-on",
+      tier >= Number(el.dataset.minTier || 1) && tier <= Number(el.dataset.maxTier || 5)));
+  }
+
+  function celebrate() {
+    host.classList.remove("celebrate");
+    void host.offsetWidth;
+    host.classList.add("celebrate");
+    host.addEventListener("animationend", () => host.classList.remove("celebrate"), { once: true });
+  }
+
   apply();
-  return { setFace, setForm, transform, gulp, say, get form() { return form; } };
+  setTier(1);
+  return { setFace, setForm, setTier, transform, gulp, celebrate, say, get form() { return form; } };
 }

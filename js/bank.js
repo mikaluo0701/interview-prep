@@ -89,6 +89,11 @@ function coverage(themes) {
   });
 }
 
+// Behavioral themes that don't have a strong story yet, in CORE_THEMES order.
+export function storyGaps() {
+  return coverage(CORE_THEMES).filter((c) => c.status !== "strong").map((c) => c.theme);
+}
+
 function coverageTile(c) {
   const label = c.status === "strong"
     ? `<span class="s-good">Strong · ${c.best.toFixed(1)}</span>`

@@ -29,7 +29,7 @@ export function renderHistory() {
       <li class="h-item${onScreen ? " current" : ""}">
         ${avg === null ? `<span class="ring empty"><b>–</b></span>` : scoreRing(avg)}
         <div class="h-main">
-          <div class="h-role">${escapeHtml(s.role || "Untitled role")}${s.sample ? ` <span class="chip">Sample</span>` : ""}</div>
+          <div class="h-role"><span class="h-role-text">${escapeHtml(s.role || "Untitled role")}</span>${s.sample ? `<span class="chip">Sample</span>` : ""}</div>
           <div class="r-testing">${date} · ${answered} answered${left ? ` · ${left} left` : ""}${onScreen ? " · on screen" : ""}</div>
         </div>
         <div class="actions">
