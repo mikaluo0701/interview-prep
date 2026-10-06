@@ -1,7 +1,7 @@
 // Public configuration. The Supabase publishable key is meant to ship to browsers;
 // row-level security on the ip_* tables is what protects each user's data.
-export const SUPABASE_URL = "https://bkmhdmbwrihbtwwvizvq.supabase.co";
-export const SUPABASE_KEY = "sb_publishable_6JfIJ3LenjnMliUCva7qAQ_ab2IA90p";
+export const SUPABASE_URL = "https://byjcbrhzozomfwbquebs.supabase.co";
+export const SUPABASE_KEY = "sb_publishable_vN2G3-saIdRedCAyOv0_sg_frZXSazB";
 
 export const MODEL = "claude-opus-5-5";
 

@@ -1,6 +1,6 @@
 -- Interview Practice Coach tables.
--- These live in the Purrfect Planner Supabase project (shared auth users), so every
--- table is prefixed ip_ and readable/writable only by the row's owner.
+-- Run in the app's own Supabase project (interview-prep). Tables are prefixed ip_ and
+-- readable/writable only by the row's owner.
 
 CREATE TABLE public.ip_sessions (
   id uuid PRIMARY KEY,
