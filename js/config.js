@@ -3,7 +3,15 @@
 export const SUPABASE_URL = "https://byjcbrhzozomfwbquebs.supabase.co";
 export const SUPABASE_KEY = "sb_publishable_vN2G3-saIdRedCAyOv0_sg_frZXSazB";
 
-export const MODEL = "claude-opus-5-5";
+export const MODEL = "claude-opus-5-5";        // writes the questions (tailoring matters most)
+export const FAST_MODEL = "claude-sonnet-5-5"; // grades answers and reads job links (speed matters most)
+
+// How the 10 questions split between behavioral/fit and technical.
+export const MIXES = [
+  { key: "mix", label: "Mix", rule: "about 6 behavioral and 4 technical, unless the role clearly calls for a different split" },
+  { key: "behavioral", label: "All behavioral", rule: "all 10 behavioral and fit, 0 technical" },
+  { key: "technical", label: "All technical", rule: "all 10 technical, 0 behavioral" }
+];
 
 // Behavioral themes every candidate should have a story for.
 export const CORE_THEMES = ["Career story", "Conflict", "Ambiguity", "Influence without authority", "Failure", "Leadership", "Ownership", "Prioritization", "Mentoring"];

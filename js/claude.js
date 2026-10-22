@@ -1,5 +1,5 @@
 // Claude API calls, made directly from the browser with the user's own key.
-import { MODEL, CORE_THEMES, TRACKS } from "./config.js";
+import { MODEL, FAST_MODEL, CORE_THEMES, TRACKS, MIXES } from "./config.js";
 import { SKILLS } from "./game.js";
 import { fmtTime } from "./util.js";
 
@@ -27,11 +27,11 @@ Questions come in two groups:
   - marketing: segmentation and positioning, go-to-market, brand, and marketing metrics.
   - operations: process improvement, supply chain, and operating metrics.
   - general: business judgment questions tied to the role.
-Use about 6 behavioral and 4 technical questions, unless the role clearly calls for a different mix.
+Follow the question mix given in the preferences exactly.
 
 track: the track you used. If the candidate chose one, use it; otherwise infer it from the job description.
 
-Make every question specific. Tie each one to something concrete in the job description, the résumé, or the gap between them: a claimed achievement the interviewer will want to verify, a requirement the résumé doesn't clearly cover, an industry the candidate is moving into. Avoid generic questions like "What is your greatest weakness?" unless you make them specific to this candidate.
+Make every question unmistakably about this candidate and this job. Each question must name at least one concrete detail: the company or role by name, a specific employer, project, number or skill from the résumé, or a specific requirement from the job description. Good targets: a claimed achievement the interviewer will want to verify, a requirement the résumé doesn't clearly cover, an industry the candidate is moving into. A question that could be asked of any candidate is not acceptable; the MBA classics still name the company and role.
 
 ${QUESTION_RULES}`;
 
@@ -161,8 +161,9 @@ function finalText(data) {
   return data.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
 }
 
-async function callJson(apiKey, system, content, schema) {
+async function callJson(apiKey, system, content, schema, model = MODEL) {
   const data = await post(apiKey, {
+    model,
     system,
     output_config: { effort: "medium", format: { type: "json_schema", schema } },
     messages: [{ role: "user", content }]
@@ -176,12 +177,13 @@ const docs = (jd, resume) =>
   `<job_description>\n${jd || "(none given)"}\n</job_description>\n\n<resume>\n${resume || "(none given)"}\n</resume>`;
 
 // track: a TRACKS key, or "" to let Claude infer it. interviewer: a tier name such as "VP".
-export function generateQuestions(apiKey, { jd, resume, track, interviewer }) {
+export function generateQuestions(apiKey, { jd, resume, track, interviewer, mix }) {
   const trackLabel = TRACKS.find((t) => t.key === track)?.label;
+  const mixRule = (MIXES.find((m) => m.key === mix) || MIXES[0]).rule;
   return callJson(
     apiKey,
     QUESTIONS_PROMPT,
-    `${docs(jd, resume)}\n\n<preferences>\nTrack: ${trackLabel ? `${track} (${trackLabel}), chosen by the candidate` : "not chosen; infer it from the job description"}\nInterviewer rank: ${interviewer}\n</preferences>`,
+    `${docs(jd, resume)}\n\n<preferences>\nTrack: ${trackLabel ? `${track} (${trackLabel}), chosen by the candidate` : "not chosen; infer it from the job description"}\nQuestion mix: ${mixRule}\nInterviewer rank: ${interviewer}\n</preferences>`,
     QUESTIONS_SCHEMA
   );
 }
@@ -210,7 +212,8 @@ export function reviewAnswer(apiKey, s, q, st) {
     `<rubric>\n${rubric}\n</rubric>\n\n` +
     time +
     `<candidate_answer>\n${st.answer}\n</candidate_answer>`,
-    REVIEW_SCHEMA
+    REVIEW_SCHEMA,
+    FAST_MODEL
   );
 }
 
@@ -225,11 +228,12 @@ Then reply with only the job description as plain text: the job title and compan
 
 If the page can't be fetched, needs a login, or isn't a job posting, reply with only "CANNOT_READ: " followed by a short reason.`
   }];
-  const tools = [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 3 }];
+  // Cap how much of the page is read: job pages are padded with navigation and listings.
+  const tools = [{ type: "web_fetch_20260209", name: "web_fetch", max_uses: 2, max_content_tokens: 12000 }];
 
   let data;
   for (let turn = 0; turn < 4; turn++) {
-    data = await post(apiKey, { output_config: { effort: "low" }, tools, messages });
+    data = await post(apiKey, { model: FAST_MODEL, output_config: { effort: "low" }, tools, messages });
     if (data.stop_reason !== "pause_turn") break;
     // The server paused its tool loop; send the partial turn back so it resumes.
     messages.splice(1, 1, { role: "assistant", content: data.content });

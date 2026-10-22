@@ -95,12 +95,12 @@ const SVG = `
       <g class="part" data-part="eyes-happy" fill="none" stroke="#1d1f2e" stroke-width="5.5" stroke-linecap="round">
         <path d="M92 141 q12 -15 24 0"/><path d="M144 141 q12 -15 24 0"/>
       </g>
-      <g class="part" data-part="eyes-evil" filter="url(#nb-glow)">
+      <g class="part" data-part="eyes-evil">
         <path d="M88 130 L122 142 Q108 156 93 147 Z" fill="url(#nb-eye-evil)"/>
         <path d="M172 130 L138 142 Q152 156 167 147 Z" fill="url(#nb-eye-evil)"/>
         <ellipse cx="107" cy="144" rx="2.4" ry="5.5" fill="#1c0410"/><ellipse cx="153" cy="144" rx="2.4" ry="5.5" fill="#1c0410"/>
       </g>
-      <g class="part" data-part="eyes-half" filter="url(#nb-glow)">
+      <g class="part" data-part="eyes-half">
         <path d="M89 140 L122 143 Q107 152 92 147 Z" fill="url(#nb-eye-evil)"/>
         <path d="M171 140 L138 143 Q153 152 168 147 Z" fill="url(#nb-eye-evil)"/>
       </g>
@@ -213,7 +213,7 @@ export function createMonster(host, bubble) {
     host.addEventListener("animationend", () => host.classList.remove("gulp"), { once: true });
   }
 
-  // Speech bubble with a quick typewriter effect. A newer say() cancels an older one.
+  // Speech bubble. Lines appear at once with a small pop; a newer say() replaces an older one.
   async function say(text, { sub = "", face: speakFace, settle } = {}) {
     const token = ++sayToken;
     subEl.textContent = sub;
@@ -222,17 +222,11 @@ export function createMonster(host, bubble) {
     void bubble.offsetWidth;
     bubble.classList.add("pop");
     if (speakFace) setFace(speakFace);
-    if (reducedMotion() || text.length > 260) {
-      textEl.textContent = text;
-    } else {
-      textEl.textContent = "";
-      for (let i = 0; i < text.length; i += 2) {
-        if (token !== sayToken) return;
-        textEl.textContent = text.slice(0, i + 2);
-        await sleep(14);
-      }
-    }
-    if (token === sayToken && settle) setFace(settle);
+    textEl.textContent = text;
+    if (!settle) return;
+    // Mouth moves briefly while "talking", then settles.
+    await sleep(reducedMotion() ? 0 : Math.min(1200, 300 + text.length * 8));
+    if (token === sayToken) setFace(settle);
   }
 
   // Rank 1–5 (Analyst → Managing Partner): outfit layers and bigger horns.

@@ -10,7 +10,7 @@ import { initBank, renderBank, storyGaps } from "./bank.js";
 import { initHistory, renderHistory } from "./history.js";
 import { speechSupported, createDictation, createTimer } from "./voice.js";
 import { levelInfo, answerXp, updateSkills, weakestSkills, emptyProgress, COMPLETION_XP, DRILL_UNLOCK_ANSWERS } from "./game.js";
-import { TRACKS, MAX_DOC_CHARS } from "./config.js";
+import { TRACKS, MIXES, MAX_DOC_CHARS } from "./config.js";
 import { SAMPLE_JD, SAMPLE_RESUME, SAMPLE_OUTPUT } from "./sample.js";
 import { $, escapeHtml, sleep, uuid, wordCount, pick, debounce, roleLabel, catLabel, avgScore, reducedMotion, fmtTime } from "./util.js";
 
@@ -225,7 +225,7 @@ async function eat(kind, fromEl) {
   await flyToMonster(fromEl, kind === "jd" ? "📋" : "📄");
   monster.gulp();
   monster.say(kind === "jd" ? "Om nom nom…" : "Munch munch…", { face: "chew" });
-  await sleep(reducedMotion() ? 200 : 1100);
+  await sleep(reducedMotion() ? 150 : 450);
   food[kind].fed = true;
   renderFood();
   const role = roleLabel(food.jd.text);
@@ -400,15 +400,14 @@ async function startRun(kind, { forceSample = false } = {}) {
   $("rank").textContent = `😈 ${tier.name} Nibbles`;
   $("stage").scrollIntoView({ behavior: "smooth", block: "start" });
   await monster.transform("evil");
-  await monster.say(kind === "drill" ? LINES.drillTransform : LINES.transform, { face: "talk", settle: "normal" });
-  await sleep(900);
+  monster.say(kind === "drill" ? LINES.drillTransform : LINES.transform, { face: "talk", settle: "normal" });
 
   const sample = kind === "interview" && !key;
   let output, jd, resume, role;
   monster.say(LINES.sharpening, { face: "smug" });
   try {
     if (sample) {
-      await sleep(900);
+      await sleep(300);
       output = SAMPLE_OUTPUT;
       [jd, resume] = [SAMPLE_JD, SAMPLE_RESUME];
       role = roleLabel(jd);
@@ -420,7 +419,7 @@ async function startRun(kind, { forceSample = false } = {}) {
       role = `Weak-spot drill · ${weak.map((w) => w.label).join(" & ")}`;
     } else {
       [jd, resume] = [food.jd.text, food.resume.text];
-      output = await generateQuestions(key, { jd, resume, track: $("track").value, interviewer: tier.name });
+      output = await generateQuestions(key, { jd, resume, track: $("track").value, interviewer: tier.name, mix: $("mix").value });
       role = roleLabel(jd);
     }
   } catch (err) {
@@ -499,7 +498,7 @@ async function submitAnswer() {
   renderReviewSummary();
   grade(i);
   await monster.say(pick(LINES.submitted), { face: "smug" });
-  await sleep(700);
+  await sleep(250);
   busy = false;
   askNext();
 }
@@ -515,7 +514,7 @@ async function skipQuestion() {
   renderReviewItem(i);
   renderReviewSummary();
   await monster.say(pick(LINES.skipped), { face: "smug" });
-  await sleep(600);
+  await sleep(250);
   busy = false;
   askNext();
 }
@@ -528,7 +527,7 @@ async function grade(i) {
   try {
     let review;
     if (s.sample) {
-      await sleep(900);
+      await sleep(400);
       review = q.sampleReview;
       st.reviewedSample = st.answer.trim() !== q.sampleAnswer.trim();
     } else {
@@ -628,7 +627,7 @@ async function continueInterview() {
   $("rank").textContent = `😈 ${currentLevel().tier.name} Nibbles`;
   await monster.transform("evil");
   await monster.say(LINES.backForMore, { face: "talk", settle: "normal" });
-  await sleep(500);
+  await sleep(200);
   askNext();
 }
 
@@ -848,6 +847,7 @@ function wire() {
     $("toggle-key").textContent = hidden ? "Hide" : "Show";
   });
   for (const t of TRACKS) $("track").add(new Option(t.label, t.key));
+  for (const m of MIXES) $("mix").add(new Option(m.label, m.key));
 
   // Interview
   $("start").addEventListener("click", () => startRun("interview"));

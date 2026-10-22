@@ -92,8 +92,7 @@ h2 .emo { font-size: 28px; }
   position: sticky; top: 0; z-index: 10;
   display: flex; justify-content: space-between; align-items: center;
   margin: 0 -16px; padding: 12px 16px;
-  background: color-mix(in srgb, var(--bg) 78%, transparent);
-  backdrop-filter: saturate(1.6) blur(14px); -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  background: var(--bg);
 }
 .brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
 .brand-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--surface); display: grid; place-items: center; box-shadow: 0 1px 2px rgba(10, 19, 23, 0.08), 0 4px 12px -4px rgba(4, 87, 203, 0.35); }
@@ -224,7 +223,7 @@ button.big { padding: 17px 34px; font-size: 16px; }
   .key-panel { grid-area: key; min-width: 0; }
   .start-wrap { display: contents; }
   .track-pick { grid-area: track; margin: 0; min-height: 48px; padding: 8px 10px 8px 16px; border-radius: 18px; justify-content: space-between; background: color-mix(in srgb, var(--surface) 70%, transparent); font-size: 13.5px; font-weight: 700; }
-  .track-pick select { max-width: 60%; }
+  .track-pick select { max-width: none; }
   .start-wrap #start { grid-area: start; width: 100%; }
   .start-wrap .start-hint { grid-area: hint; align-self: center; text-align: left; }
   .start-wrap #sample-food { grid-area: sample; justify-self: end; align-self: center; }
@@ -252,14 +251,15 @@ body.evil .m-shadow { fill: rgba(0, 0, 0, 0.55); }
 .monster-wrap[data-form="evil"] .cute-only { opacity: 0; }
 .m-horns { transform-box: view-box; transform-origin: 130px 70px; transform: scale(0.3); transition: transform 0.6s cubic-bezier(.3,1.6,.5,1), opacity 0.45s; }
 .monster-wrap[data-form="evil"] .m-horns { transform: scale(var(--horn-scale, 1)); }
-.m-bob { transform-box: view-box; transform-origin: 130px 236px; animation: nb-bob 3.2s ease-in-out infinite; }
-.monster-wrap[data-form="evil"] .m-bob { animation-duration: 1.5s; }
+.monster-svg { animation: nb-float 3.2s ease-in-out infinite; will-change: transform; }
+.monster-wrap[data-form="evil"] .monster-svg { animation-duration: 1.6s; }
+.m-bob { transform-box: view-box; transform-origin: 130px 236px; }
+@keyframes nb-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 .m-blink { transform-box: fill-box; transform-origin: center; animation: nb-blink 5s infinite; }
 .m-chew { transform-box: fill-box; transform-origin: center; animation: nb-chew 0.3s ease-in-out infinite alternate; }
 .m-talk { transform-box: fill-box; transform-origin: 50% 0; }
 .monster-wrap.talking .m-talk { animation: nb-talk 0.17s ease-in-out infinite alternate; }
 .m-aura { transform-box: fill-box; transform-origin: center; }
-.monster-wrap[data-form="evil"] .m-aura { animation: nb-pulse 1.6s ease-in-out infinite; }
 .monster-wrap.gulp .m-bob { animation: nb-gulp 0.45s ease-out; }
 .monster-wrap.transforming .m-bob { animation: nb-shake 0.8s ease-in-out; }
 @keyframes nb-bob { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-7px) scale(1.012, 0.988); } }
@@ -280,15 +280,6 @@ body.evil .m-shadow { fill: rgba(0, 0, 0, 0.55); }
 .flyer { position: fixed; z-index: 60; font-size: 34px; pointer-events: none; }
 
 /* ---------- Evil mode: the whole page darkens while Nibbles interviews you ---------- */
-@property --bg { syntax: "<color>"; inherits: true; initial-value: #f4f6f9; }
-@property --surface { syntax: "<color>"; inherits: true; initial-value: #ffffff; }
-@property --surface-2 { syntax: "<color>"; inherits: true; initial-value: #f5f7fa; }
-@property --text { syntax: "<color>"; inherits: true; initial-value: #0a1317; }
-@property --accent { syntax: "<color>"; inherits: true; initial-value: #0457cb; }
-@property --hero-top { syntax: "<color>"; inherits: true; initial-value: #ffffff; }
-@property --hero-bottom { syntax: "<color>"; inherits: true; initial-value: #cfe1fb; }
-@property --glow-1 { syntax: "<color>"; inherits: true; initial-value: #dde9fb; }
-body { transition: --bg 0.9s, --surface 0.9s, --surface-2 0.9s, --text 0.9s, --accent 0.9s, --hero-top 0.9s, --hero-bottom 0.9s, --glow-1 0.9s; }
 body.evil {
   --bg: #12060d;
   --glow-1: #43102a;
@@ -515,7 +506,7 @@ input.tag-add { width: 160px; padding: 7px 14px; font-size: 13px; border-radius:
 select { font: 600 13px var(--display); color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 99px; padding: 7px 12px; cursor: pointer; }
 select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .track-pick { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; margin: 0 0 4px; }
-.track-pick select { max-width: 190px; }
+.track-pick select { flex: 1; min-width: 0; max-width: 190px; }
 @media (max-width: 720px) { .track-pick { width: 100%; } .track-pick select { flex: 1; max-width: none; } }
 
 .key-help { margin-top: 10px; font-size: 13px; color: var(--muted); }
